@@ -9,6 +9,7 @@ export interface User {
   city: string;
   phone: string;
   isAvailable: boolean;
+  lastDonatedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -22,6 +23,7 @@ export interface Donor {
   city: string;
   phone: string;
   isAvailable: boolean;
+  lastDonatedAt?: string;
   createdAt?: string;
 }
 

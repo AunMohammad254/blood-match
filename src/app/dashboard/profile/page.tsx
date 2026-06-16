@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getUser, getToken, saveAuth, logout, updateUser } from "@/lib/auth";
 import { User } from "@/types";
 import { BLOOD_TYPES, CITIES } from "@/lib/constants";
-import { User as UserIcon, Phone, MapPin, Droplets, Save, LogOut, CheckCircle, AlertCircle, Loader2, Edit3, Key, X } from "lucide-react";
+import { User as UserIcon, Phone, MapPin, Droplets, Save, LogOut, CheckCircle, AlertCircle, Loader2, Edit3, Key, X, Calendar, Trash2, Info, Heart } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -17,14 +17,18 @@ export default function ProfilePage() {
   // Modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Edit form state
-  const [editForm, setEditForm] = useState({ name: "", phone: "", city: "" });
+  const [editForm, setEditForm] = useState({ name: "", phone: "", city: "", lastDonatedAt: "" });
   const [isEditing, setIsEditing] = useState(false);
 
   // Password form state
   const [passForm, setPassForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [isChangingPass, setIsChangingPass] = useState(false);
+
+  // Deletion state
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const u = getUser();
@@ -34,7 +38,12 @@ export default function ProfilePage() {
     }
     setUser(u);
     setIsAvailable(u.isAvailable ?? true);
-    setEditForm({ name: u.name, phone: u.phone, city: u.city });
+    setEditForm({ 
+      name: u.name, 
+      phone: u.phone, 
+      city: u.city, 
+      lastDonatedAt: u.lastDonatedAt ? new Date(u.lastDonatedAt).toISOString().split("T")[0] : "" 
+    });
   }, [router]);
 
   const showToast = (type: "success" | "error", message: string) => {
@@ -147,6 +156,33 @@ export default function ProfilePage() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        logout();
+        router.push("/");
+      } else {
+        const data = await res.json();
+        showToast("error", data.error || "Failed to delete account.");
+      }
+    } catch {
+      showToast("error", "Network error. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     router.push("/");
@@ -163,6 +199,10 @@ export default function ProfilePage() {
   const joinDate = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString("en-PK", { year: "numeric", month: "long", day: "numeric" })
     : "—";
+
+  const lastDonationDate = user.lastDonatedAt
+    ? new Date(user.lastDonatedAt).toLocaleDateString("en-PK", { year: "numeric", month: "long", day: "numeric" })
+    : "Never logged";
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
@@ -225,6 +265,22 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Stats Section (Donors Only) */}
+        {user.role === "donor" && (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gradient-to-br from-red-600 to-rose-700 rounded-3xl p-6 text-white shadow-lg">
+              <Heart className="w-6 h-6 mb-3 opacity-80" />
+              <p className="text-2xl font-black">Verified</p>
+              <p className="text-xs font-bold opacity-80 uppercase tracking-widest">Profile Status</p>
+            </div>
+            <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <Droplets className="w-6 h-6 mb-3 text-red-600" />
+              <p className="text-2xl font-black text-gray-900">{user.bloodType}</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Blood Type</p>
+            </div>
+          </div>
+        )}
+
         {/* Info Grid */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
           <div className="flex items-center justify-between mb-6">
@@ -235,6 +291,9 @@ export default function ProfilePage() {
             <InfoRow icon={<MapPin className="w-4 h-4 text-blue-600" />} label="City" value={user.city} />
             <InfoRow icon={<Phone className="w-4 h-4 text-green-600" />} label="Phone" value={user.phone} />
             <InfoRow icon={<UserIcon className="w-4 h-4 text-purple-600" />} label="Member Since" value={joinDate} />
+            {user.role === "donor" && (
+              <InfoRow icon={<Calendar className="w-4 h-4 text-orange-600" />} label="Last Donation" value={lastDonationDate} />
+            )}
           </div>
         </div>
 
@@ -289,7 +348,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-900">Password</p>
-                <p className="text-xs text-gray-400 font-medium">Last changed: (hidden for security)</p>
+                <p className="text-xs text-gray-400 font-medium">Securely managed</p>
               </div>
             </div>
             <button
@@ -301,8 +360,29 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Danger Zone */}
+        <div className="bg-red-50/50 rounded-3xl border border-red-100 shadow-sm p-8">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <h2 className="text-base font-black text-red-900 uppercase tracking-wider">Danger Zone</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold text-gray-900">Deactivate Account</p>
+              <p className="text-xs text-gray-500 font-medium">Once deleted, your profile and history cannot be recovered.</p>
+            </div>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="flex items-center gap-2 text-sm font-bold text-red-600 border border-red-200 hover:bg-red-100 px-4 py-2.5 rounded-xl transition-all"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Account
+            </button>
+          </div>
+        </div>
+
         {/* Quick Actions */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 pb-10">
           <h2 className="text-base font-black text-gray-800 uppercase tracking-wider mb-5">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <a
@@ -345,7 +425,7 @@ export default function ProfilePage() {
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            <form onSubmit={handleEditProfile} className="p-6 space-y-4">
+            <form onSubmit={handleEditProfile} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="space-y-1.5">
                 <label className="text-xs font-black text-gray-400 uppercase tracking-wider">Full Name</label>
                 <input
@@ -379,6 +459,25 @@ export default function ProfilePage() {
                   ))}
                 </select>
               </div>
+              {user.role === "donor" && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                    Last Donation Date
+                    <div className="group relative">
+                      <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        Setting this helps calculate your next eligible donation date.
+                      </div>
+                    </div>
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.lastDonatedAt}
+                    onChange={(e) => setEditForm({ ...editForm, lastDonatedAt: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-medium"
+                  />
+                </div>
+              )}
               <div className="pt-4 flex gap-3">
                 <button
                   type="button"
@@ -460,6 +559,36 @@ export default function ProfilePage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
+              <Trash2 className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-black text-gray-900 mb-2">Delete Account?</h3>
+            <p className="text-sm text-gray-500 font-medium mb-8">
+              Are you absolutely sure? This action will permanently remove your data and cannot be undone.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+                className="w-full py-4 rounded-2xl bg-red-600 text-white font-black hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Yes, Delete Permanently"}
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="w-full py-4 rounded-2xl bg-gray-50 text-gray-700 font-bold hover:bg-gray-100 transition-all"
+              >
+                Keep My Account
+              </button>
+            </div>
           </div>
         </div>
       )}

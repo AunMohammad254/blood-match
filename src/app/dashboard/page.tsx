@@ -105,7 +105,9 @@ export default function DashboardPage() {
             <div className="flex flex-wrap items-center gap-2.5 mt-3 text-xs sm:text-sm font-bold">
               <span className="text-red-400 uppercase tracking-wider bg-red-500/10 px-3 py-1 rounded-xl border border-red-500/20">{user.role}</span>
               <span className="text-gray-600">·</span>
-              <span className="text-gray-300">Logged in as: <strong className="text-white tracking-wide">{user.name}</strong></span>
+              <Link href="/dashboard/profile" className="text-gray-300 hover:text-white transition-colors">
+                Logged in as: <strong className="text-white tracking-wide underline underline-offset-4 decoration-red-500/50 hover:decoration-red-500">{user.name}</strong>
+              </Link>
               <span className="text-gray-600">·</span>
               <span className="text-gray-300 flex items-center gap-2">
                 Group: <BloodTypeBadge type={user.bloodType} />

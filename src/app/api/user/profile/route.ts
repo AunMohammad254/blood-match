@@ -13,7 +13,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { name, phone, city } = body;
+    const { name, phone, city, lastDonatedAt } = body;
 
     // Validation
     if (name && (name.trim().length < 2 || name.trim().length > 60)) {
@@ -29,6 +29,7 @@ export async function PATCH(req: Request) {
     if (name) updateData.name = name.trim();
     if (phone) updateData.phone = phone.trim();
     if (city) updateData.city = city.trim();
+    if (lastDonatedAt !== undefined) updateData.lastDonatedAt = lastDonatedAt ? new Date(lastDonatedAt) : null;
 
     const updatedUser = await User.findByIdAndUpdate(
       decoded.userId,
@@ -51,13 +52,38 @@ export async function PATCH(req: Request) {
           bloodType: updatedUser.bloodType,
           city: updatedUser.city,
           phone: updatedUser.phone,
-          isAvailable: updatedUser.isAvailable
+          isAvailable: updatedUser.isAvailable,
+          lastDonatedAt: updatedUser.lastDonatedAt
         }
       },
       { status: 200 }
     );
   } catch (err) {
     console.error("[PATCH_/api/user/profile]", err);
+    return NextResponse.json({ error: "Server error." }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    await connectDB();
+    const decoded = verifyAuth(req);
+
+    if (!decoded) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    // For safety, we just mark as unavailable and change role to a "deleted" state 
+    // or actually delete. Let's do actual deletion for this project.
+    const deletedUser = await User.findByIdAndDelete(decoded.userId);
+
+    if (!deletedUser) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Account deleted successfully." }, { status: 200 });
+  } catch (err) {
+    console.error("[DELETE_/api/user/profile]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

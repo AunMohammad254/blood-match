@@ -58,7 +58,9 @@ export async function POST(req: Request) {
           bloodType: user.bloodType,
           city: user.city,
           phone: user.phone,
-          isAvailable: user.isAvailable
+          isAvailable: user.isAvailable,
+          lastDonatedAt: user.lastDonatedAt,
+          createdAt: user.createdAt
         }
       },
       { status: 200 }

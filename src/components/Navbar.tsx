@@ -59,11 +59,14 @@ export const Navbar: React.FC = () => {
 
           {user ? (
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-xs text-red-950 bg-gradient-to-r from-red-50 via-rose-50 to-white border border-red-200/80 px-4 py-2 rounded-2xl shadow-xs font-bold">
-                <UserIcon className="w-4 h-4 text-red-600 shrink-0" />
+              <Link
+                href="/dashboard/profile"
+                className="flex items-center gap-2 text-xs text-red-950 bg-gradient-to-r from-red-50 via-rose-50 to-white border border-red-200/80 px-4 py-2 rounded-2xl shadow-xs font-bold hover:border-red-300 hover:shadow-sm transition-all group"
+              >
+                <UserIcon className="w-4 h-4 text-red-600 shrink-0 group-hover:scale-110 transition-transform" />
                 <span>Hello, <strong className="font-black text-red-700">{user.name}</strong></span>
                 <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">{user.role}</span>
-              </div>
+              </Link>
 
               <Link
                 href="/dashboard"
@@ -123,13 +126,17 @@ export const Navbar: React.FC = () => {
 
           {user ? (
             <div className="space-y-4 pt-2">
-              <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-gradient-to-r from-red-50 to-gray-50 border border-red-100 rounded-2xl text-xs text-gray-800">
+              <Link
+                href="/dashboard/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-gradient-to-r from-red-50 to-gray-50 border border-red-100 rounded-2xl text-xs text-gray-800 hover:border-red-300 transition-all"
+              >
                 <div className="flex items-center gap-2">
                   <UserIcon className="w-4 h-4 text-red-600" />
                   <span>Hello, <strong className="font-extrabold text-gray-900">{user.name}</strong></span>
                 </div>
                 <span className="bg-red-600 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full uppercase">{user.role}</span>
-              </div>
+              </Link>
 
               <Link
                 href="/dashboard"
