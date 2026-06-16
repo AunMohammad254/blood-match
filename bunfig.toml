@@ -1,0 +1,7 @@
+[install]
+# Use the bun.lock lockfile (not package-lock.json)
+lockfile = "bun.lock"
+
+[run]
+# bun run scripts use bun's JS runtime, not node
+bun = true
