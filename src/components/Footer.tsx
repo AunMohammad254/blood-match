@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, ShieldCheck, Sparkles, PhoneCall } from "lucide-react";
 
 export const Footer: React.FC = () => {
@@ -11,7 +12,7 @@ export const Footer: React.FC = () => {
         <div className="md:col-span-5 flex flex-col items-center md:items-start gap-3">
           <Link href="/" className="flex items-center gap-3 font-black text-xl text-gray-900">
             <div className="w-9 h-9 rounded-xl shadow-xs overflow-hidden bg-gray-900 flex items-center justify-center border border-gray-800">
-              <img src="/logo.png" alt="BloodMatch Logo" className="w-full h-full object-cover" />
+              <Image src="/logo.png" alt="BloodMatch Logo" width={36} height={36} className="w-full h-full object-cover" />
             </div>
             <span className="tracking-tight text-xl font-black bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">BloodMatch</span>
           </Link>

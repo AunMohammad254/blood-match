@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { getUser, logout } from "@/lib/auth";
 import { User } from "@/types";
@@ -38,7 +39,7 @@ export const Navbar: React.FC = () => {
 
         <Link href="/" className="flex items-center gap-3 font-black text-2xl text-gray-900 group z-10">
           <div className="w-11 h-11 rounded-2xl shadow-md group-hover:scale-105 group-hover:rotate-6 transition-all duration-300 overflow-hidden bg-gray-900 flex items-center justify-center border border-gray-800">
-            <img src="/logo.png" alt="BloodMatch Logo" className="w-full h-full object-cover" />
+            <Image src="/logo.png" alt="BloodMatch Logo" width={44} height={44} className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
             <span className="tracking-tight leading-none text-xl md:text-2xl font-black bg-gradient-to-r from-gray-900 via-gray-800 to-red-950 bg-clip-text text-transparent">BloodMatch</span>

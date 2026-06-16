@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getUser, getToken, saveAuth, logout } from "@/lib/auth";
+import { getUser, getToken, saveAuth, logout, updateUser } from "@/lib/auth";
 import { User } from "@/types";
 import { BLOOD_TYPES, CITIES } from "@/lib/constants";
-import { User as UserIcon, Phone, MapPin, Droplets, Save, LogOut, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { User as UserIcon, Phone, MapPin, Droplets, Save, LogOut, CheckCircle, AlertCircle, Loader2, Edit3, Key, X } from "lucide-react";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -13,6 +13,18 @@ export default function ProfilePage() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({ name: "", phone: "", city: "" });
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Password form state
+  const [passForm, setPassForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [isChangingPass, setIsChangingPass] = useState(false);
 
   useEffect(() => {
     const u = getUser();
@@ -22,6 +34,7 @@ export default function ProfilePage() {
     }
     setUser(u);
     setIsAvailable(u.isAvailable ?? true);
+    setEditForm({ name: u.name, phone: u.phone, city: u.city });
   }, [router]);
 
   const showToast = (type: "success" | "error", message: string) => {
@@ -63,6 +76,77 @@ export default function ProfilePage() {
     }
   };
 
+  const handleEditProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = getToken();
+    if (!token) return;
+
+    setIsEditing(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user);
+        updateUser(data.user);
+        setShowEditModal(false);
+        showToast("success", "Profile updated successfully.");
+      } else {
+        showToast("error", data.error || "Failed to update profile.");
+      }
+    } catch {
+      showToast("error", "Network error. Please try again.");
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passForm.newPassword !== passForm.confirmPassword) {
+      showToast("error", "New passwords do not match.");
+      return;
+    }
+
+    const token = getToken();
+    if (!token) return;
+
+    setIsChangingPass(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: passForm.currentPassword,
+          newPassword: passForm.newPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setShowPasswordModal(false);
+        setPassForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        showToast("success", "Password changed successfully.");
+      } else {
+        showToast("error", data.error || "Failed to change password.");
+      }
+    } catch {
+      showToast("error", "Network error. Please try again.");
+    } finally {
+      setIsChangingPass(false);
+    }
+  };
+
   const handleLogout = () => {
     logout();
     router.push("/");
@@ -85,7 +169,7 @@ export default function ProfilePage() {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold transition-all ${
+          className={`fixed top-4 right-4 z-[100] flex items-center gap-2 px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold transition-all ${
             toast.type === "success"
               ? "bg-green-600 text-white"
               : "bg-red-600 text-white"
@@ -103,7 +187,7 @@ export default function ProfilePage() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header Card */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-white text-2xl font-black shadow-lg">
                 {user.name.charAt(0).toUpperCase()}
@@ -122,19 +206,30 @@ export default function ProfilePage() {
                 </span>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-sm text-gray-500 hover:text-red-600 font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-red-50"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-sm bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold py-2.5 px-4 rounded-xl transition-all border border-gray-200"
+              >
+                <Edit3 className="w-4 h-4" />
+                Edit Profile
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-red-600 font-semibold transition-colors px-4 py-2.5 rounded-xl hover:bg-red-50 border border-transparent hover:border-red-100"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Info Grid */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-          <h2 className="text-base font-black text-gray-800 uppercase tracking-wider mb-6">Profile Details</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-base font-black text-gray-800 uppercase tracking-wider">Profile Details</h2>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <InfoRow icon={<Droplets className="w-4 h-4 text-red-600" />} label="Blood Type" value={user.bloodType} valueClass="text-red-600 font-black text-lg" />
             <InfoRow icon={<MapPin className="w-4 h-4 text-blue-600" />} label="City" value={user.city} />
@@ -184,6 +279,28 @@ export default function ProfilePage() {
           </div>
         )}
 
+        {/* Account Security */}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+          <h2 className="text-base font-black text-gray-800 uppercase tracking-wider mb-5">Account Security</h2>
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <Key className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-900">Password</p>
+                <p className="text-xs text-gray-400 font-medium">Last changed: (hidden for security)</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="text-sm font-bold text-red-600 hover:text-red-700 transition-colors"
+            >
+              Update Password
+            </button>
+          </div>
+        </div>
+
         {/* Quick Actions */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
           <h2 className="text-base font-black text-gray-800 uppercase tracking-wider mb-5">Quick Actions</h2>
@@ -217,6 +334,135 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-xl font-black text-gray-900">Edit Profile</h3>
+              <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <form onSubmit={handleEditProfile} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-gray-400 uppercase tracking-wider">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-gray-400 uppercase tracking-wider">Phone Number</label>
+                <input
+                  type="tel"
+                  required
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-gray-400 uppercase tracking-wider">City</label>
+                <select
+                  required
+                  value={editForm.city}
+                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-medium appearance-none"
+                >
+                  {CITIES.map((city) => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-3.5 px-4 rounded-2xl bg-gray-50 text-gray-700 font-bold hover:bg-gray-100 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEditing}
+                  className="flex-[2] py-3.5 px-4 rounded-2xl bg-red-600 text-white font-black hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isEditing ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-xl font-black text-gray-900">Change Password</h3>
+              <button onClick={() => setShowPasswordModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <form onSubmit={handleChangePassword} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-gray-400 uppercase tracking-wider">Current Password</label>
+                <input
+                  type="password"
+                  required
+                  value={passForm.currentPassword}
+                  onChange={(e) => setPassForm({ ...passForm, currentPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-gray-400 uppercase tracking-wider">New Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={passForm.newPassword}
+                  onChange={(e) => setPassForm({ ...passForm, newPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-medium"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-gray-400 uppercase tracking-wider">Confirm New Password</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={passForm.confirmPassword}
+                  onChange={(e) => setPassForm({ ...passForm, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-medium"
+                />
+              </div>
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="flex-1 py-3.5 px-4 rounded-2xl bg-gray-50 text-gray-700 font-bold hover:bg-gray-100 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isChangingPass}
+                  className="flex-[2] py-3.5 px-4 rounded-2xl bg-red-600 text-white font-black hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isChangingPass ? <Loader2 className="w-5 h-5 animate-spin" /> : "Update Password"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -244,3 +490,4 @@ function InfoRow({
     </div>
   );
 }
+
