@@ -25,8 +25,8 @@ export default function LandingPage() {
           {/* Emotional Insignia Drop */}
           <div className="relative inline-block mb-8 group">
             <div className="absolute -inset-4 bg-gradient-to-r from-red-600 to-rose-600 rounded-3xl blur-xl opacity-30 group-hover:opacity-60 transition-opacity duration-300 animate-pulse" />
-            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-red-600 via-red-600 to-red-800 text-white flex items-center justify-center text-6xl sm:text-7xl shadow-2xl relative z-10 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 border-4 border-white">
-              <span className="transform -translate-y-1">🩸</span>
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gray-900 flex items-center justify-center shadow-2xl relative z-10 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 border-4 border-white overflow-hidden">
+              <img src="/logo.png" alt="BloodMatch Logo" className="w-full h-full object-cover" />
             </div>
           </div>
 

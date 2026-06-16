@@ -37,8 +37,8 @@ export const Navbar: React.FC = () => {
         <div className="absolute -top-10 left-10 w-32 h-32 bg-red-500/10 rounded-full blur-2xl pointer-events-none" />
 
         <Link href="/" className="flex items-center gap-3 font-black text-2xl text-gray-900 group z-10">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-md shadow-red-500/30 group-hover:scale-105 group-hover:rotate-6 transition-all duration-300">
-            <span className="text-xl text-white transform -translate-y-0.5">🩸</span>
+          <div className="w-11 h-11 rounded-2xl shadow-md group-hover:scale-105 group-hover:rotate-6 transition-all duration-300 overflow-hidden bg-gray-900 flex items-center justify-center border border-gray-800">
+            <img src="/logo.png" alt="BloodMatch Logo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col">
             <span className="tracking-tight leading-none text-xl md:text-2xl font-black bg-gradient-to-r from-gray-900 via-gray-800 to-red-950 bg-clip-text text-transparent">BloodMatch</span>
