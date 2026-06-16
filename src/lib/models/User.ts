@@ -34,4 +34,8 @@ const UserSchema = new Schema<IUser>(
 UserSchema.index({ bloodType: 1, city: 1 });
 UserSchema.index({ role: 1, isAvailable: 1 });
 
-export const User = mongoose.models.User ?? mongoose.model<IUser>("User", UserSchema);
+import { UserMemoryModel } from "@/lib/db/memoryStore";
+
+const MongooseUserModel = mongoose.models.User ?? mongoose.model<IUser>("User", UserSchema);
+
+export const User = process.env.MONGODB_URI ? MongooseUserModel : (UserMemoryModel as any);

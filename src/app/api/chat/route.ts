@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { ChatRequestLog } from "@/lib/models/ChatRequestLog";
@@ -88,6 +88,7 @@ export async function POST(req: Request) {
     let responseSent = false;
     let finalReply = null;
     let finalModel = null;
+    let finalAction = null;
     let lastError = null;
 
     for (const modelCfg of models) {
@@ -114,14 +115,94 @@ export async function POST(req: Request) {
         const model = genAI.getGenerativeModel({
           model: modelCfg.id,
           systemInstruction: SYSTEM_PROMPT,
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: "searchDonors",
+                  description: "Search for active compatible blood donors by blood type and city on BloodMatch.",
+                  parameters: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      bloodType: {
+                        type: SchemaType.STRING,
+                        description: "The blood type to search for (e.g., A+, O-, B+)."
+                      },
+                      city: {
+                        type: SchemaType.STRING,
+                        description: "The city to filter donors by (e.g., Karachi, Lahore, Islamabad)."
+                      }
+                    },
+                    required: ["bloodType"]
+                  }
+                },
+                {
+                  name: "createRequest",
+                  description: "Guide the user to create an emergency blood request by pre-filling request parameters.",
+                  parameters: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      patientName: { type: SchemaType.STRING, description: "Name of the patient." },
+                      bloodType: { type: SchemaType.STRING, description: "Blood type needed." },
+                      units: { type: SchemaType.NUMBER, description: "Number of blood units needed (1-20)." },
+                      hospital: { type: SchemaType.STRING, description: "Hospital name." },
+                      city: { type: SchemaType.STRING, description: "City name." },
+                      urgency: { type: SchemaType.STRING, description: "Urgency level: normal, urgent, or critical." },
+                      contactPhone: { type: SchemaType.STRING, description: "Contact phone number." }
+                    },
+                    required: ["bloodType"]
+                  }
+                },
+                {
+                  name: "toggleAvailability",
+                  description: "Toggle the current logged-in donor's availability status (available or unavailable).",
+                  parameters: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      isAvailable: { type: SchemaType.BOOLEAN, description: "The target availability status (true to be active/available, false to be inactive)." }
+                    },
+                    required: ["isAvailable"]
+                  }
+                }
+              ]
+            }
+          ]
         });
 
         const chat = model.startChat({ history: validHistory });
         const result = await chat.sendMessage(lastMessage.content);
-        const text = result.response.text();
+        
+        let text = "";
+        try {
+          text = result.response.text();
+        } catch (e) {
+          // No text response generated (common during pure function calling)
+        }
 
-        finalReply = text;
+        const functionCalls = result.response.functionCalls();
+        let action = null;
+        if (functionCalls && functionCalls.length > 0) {
+          const call = functionCalls[0];
+          const args = call.args as any;
+          action = {
+            type: call.name,
+            parameters: args
+          };
+          
+          if (!text) {
+            if (call.name === "searchDonors") {
+              text = `I've prepared a search for compatible ${args.bloodType} blood donors${args.city ? ` in ${args.city}` : ""}. Click the button below to view matches.`;
+            } else if (call.name === "createRequest") {
+              text = `I've prepared a draft request for ${args.units || 1} unit(s) of ${args.bloodType} blood${args.patientName ? ` for ${args.patientName}` : ""}${args.hospital ? ` at ${args.hospital}` : ""}. Click the button below to open and review the request form.`;
+            } else if (call.name === "toggleAvailability") {
+              text = `I understand you want to set your availability status to ${args.isAvailable ? "Available" : "Unavailable"}. Click the button below to confirm.`;
+            }
+          }
+        }
+
+        finalReply = text || "I've processed that action for you. Check the button below!";
         finalModel = modelCfg.displayName;
+        finalAction = action;
         responseSent = true;
         break; // Successfully got reply, exit loop
       } catch (err: any) {
@@ -202,6 +283,7 @@ export async function POST(req: Request) {
 
       return NextResponse.json({
         reply: finalReply,
+        action: finalAction,
         model: finalModel,
         chatSessionId: savedSessionId
       });

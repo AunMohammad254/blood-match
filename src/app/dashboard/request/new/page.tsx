@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BLOOD_TYPES, CITIES, URGENCY_LEVELS, BloodType, UrgencyLevel } from "@/lib/constants";
 import { createRequest } from "@/lib/api";
 import { ArrowLeft, Send, Sparkles, AlertTriangle, Bell, Droplets } from "lucide-react";
 
-export default function CreateRequestPage() {
+function CreateRequestForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [patientName, setPatientName] = useState("");
   const [bloodType, setBloodType] = useState<BloodType>("A+");
@@ -22,6 +23,24 @@ export default function CreateRequestPage() {
   const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  useEffect(() => {
+    const pName = searchParams.get("patientName");
+    const bType = searchParams.get("bloodType");
+    const uUnits = searchParams.get("units");
+    const uUrgency = searchParams.get("urgency");
+    const hHospital = searchParams.get("hospital");
+    const cCity = searchParams.get("city");
+    const pPhone = searchParams.get("contactPhone");
+
+    if (pName) setPatientName(pName);
+    if (bType && BLOOD_TYPES.includes(bType as BloodType)) setBloodType(bType as BloodType);
+    if (uUnits) setUnits(uUnits);
+    if (uUrgency && URGENCY_LEVELS.includes(uUrgency as UrgencyLevel)) setUrgency(uUrgency as UrgencyLevel);
+    if (hHospital) setHospital(hHospital);
+    if (cCity && (CITIES as readonly string[]).includes(cCity)) setCity(cCity as any);
+    if (pPhone) setContactPhone(pPhone);
+  }, [searchParams]);
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
@@ -363,5 +382,13 @@ export default function CreateRequestPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function CreateRequestPage() {
+  return (
+    <Suspense fallback={<div className="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mx-auto mt-20" />}>
+      <CreateRequestForm />
+    </Suspense>
   );
 }

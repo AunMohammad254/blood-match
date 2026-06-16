@@ -18,6 +18,42 @@ ChatRequestLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 60 });
 // Compound index for efficient querying of request counts
 ChatRequestLogSchema.index({ ip: 1, modelName: 1, timestamp: -1 });
 
-export const ChatRequestLog =
+interface MockChatRequestLog {
+  ip: string;
+  modelName: string;
+  timestamp: Date;
+}
+
+const memoryLogs: MockChatRequestLog[] = [];
+
+const ChatRequestLogMemoryModel = {
+  create: async (data: any) => {
+    const newLog: MockChatRequestLog = {
+      ip: data.ip,
+      modelName: data.modelName,
+      timestamp: data.timestamp || new Date(),
+    };
+    memoryLogs.push(newLog);
+    return newLog;
+  },
+  countDocuments: async (query: any) => {
+    let matches = memoryLogs;
+    if (query.ip) {
+      matches = matches.filter((l) => l.ip === query.ip);
+    }
+    if (query.modelName) {
+      matches = matches.filter((l) => l.modelName === query.modelName);
+    }
+    if (query.timestamp && query.timestamp.$gte) {
+      const gteDate = new Date(query.timestamp.$gte);
+      matches = matches.filter((l) => l.timestamp.getTime() >= gteDate.getTime());
+    }
+    return matches.length;
+  }
+};
+
+const MongooseChatRequestLog =
   mongoose.models.ChatRequestLog ??
   mongoose.model<IChatRequestLog>("ChatRequestLog", ChatRequestLogSchema);
+
+export const ChatRequestLog = process.env.MONGODB_URI ? MongooseChatRequestLog : (ChatRequestLogMemoryModel as any);

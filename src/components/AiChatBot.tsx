@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, Sparkles, RotateCcw, History, Trash2, Clock } from "lucide-react";
+import Link from "next/link";
+import { MessageCircle, X, Send, Bot, User, Loader2, ChevronDown, Sparkles, RotateCcw, History, Trash2, Clock, Search, PlusCircle, Activity } from "lucide-react";
 import { getToken, isLoggedIn } from "@/lib/auth";
 
 interface Message {
@@ -9,6 +10,10 @@ interface Message {
   content: string;
   model?: string;
   isError?: boolean;
+  action?: {
+    type: string;
+    parameters: any;
+  };
 }
 
 const QUICK_PROMPTS = [
@@ -181,7 +186,7 @@ export default function AiChatBot() {
           const reply = data.reply || "Sorry, I couldn't process that.";
           setMessages((prev) => [
             ...prev,
-            { role: "assistant", content: reply, model: data.model }
+            { role: "assistant", content: reply, model: data.model, action: data.action }
           ]);
           if (data.chatSessionId) {
             setChatSessionId(data.chatSessionId);
@@ -218,6 +223,47 @@ export default function AiChatBot() {
     },
     [messages, isLoading, isOpen, chatSessionId, isUserLoggedIn, fetchHistory]
   );
+
+  const handleToggleAvailabilityAction = async (targetState: boolean) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/donors/availability", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ isAvailable: targetState }),
+      });
+      if (res.ok) {
+        // Update user availability in localStorage
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          user.isAvailable = targetState;
+          localStorage.setItem("user", JSON.stringify(user));
+          // Dispatch storage event to update dashboard/navbar
+          window.dispatchEvent(new Event("storage"));
+        }
+        
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: `✅ Done! I've set your availability status to **${targetState ? "Available" : "Unavailable"}**.`
+          }
+        ]);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || "Failed to update availability status.");
+      }
+    } catch (err) {
+      console.error("Error toggling availability:", err);
+      alert("Connection error. Failed to toggle status.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -398,7 +444,45 @@ export default function AiChatBot() {
                   <div className="flex items-start gap-1.5">
                     {msg.isError && <X className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />}
                     <div className="flex-1">
-                      {renderContent(msg.content)}
+                       {renderContent(msg.content)}
+
+                      {msg.action && (() => {
+                        const act = msg.action;
+                        return (
+                          <div className="mt-3 pt-3 border-t border-white/10 flex flex-col gap-2">
+                            {act.type === "searchDonors" && (
+                              <Link
+                                href={`/dashboard/match?bloodType=${encodeURIComponent(act.parameters.bloodType)}&city=${encodeURIComponent(act.parameters.city || "")}`}
+                                className="inline-flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3.5 rounded-xl text-xs transition shadow-md hover:scale-[1.02] active:scale-95"
+                              >
+                                <Search className="w-3.5 h-3.5" />
+                                <span>View Matching {act.parameters.bloodType} Donors</span>
+                              </Link>
+                            )}
+                            
+                            {act.type === "createRequest" && (
+                              <Link
+                                href={`/dashboard/request/new?bloodType=${encodeURIComponent(act.parameters.bloodType || "")}&city=${encodeURIComponent(act.parameters.city || "")}&patientName=${encodeURIComponent(act.parameters.patientName || "")}&units=${encodeURIComponent(act.parameters.units || "")}&hospital=${encodeURIComponent(act.parameters.hospital || "")}&urgency=${encodeURIComponent(act.parameters.urgency || "")}&contactPhone=${encodeURIComponent(act.parameters.contactPhone || "")}`}
+                                className="inline-flex items-center justify-center gap-1.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold py-2 px-3.5 rounded-xl text-xs transition shadow-md hover:scale-[1.02] active:scale-95"
+                              >
+                                <PlusCircle className="w-3.5 h-3.5" />
+                                <span>Create Request Form</span>
+                              </Link>
+                            )}
+                            
+                            {act.type === "toggleAvailability" && (
+                              <button
+                                type="button"
+                                onClick={() => handleToggleAvailabilityAction(act.parameters.isAvailable)}
+                                className="inline-flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-3.5 rounded-xl text-xs transition shadow-md hover:scale-[1.02] active:scale-95"
+                              >
+                                <Activity className="w-3.5 h-3.5 animate-pulse" />
+                                <span>Set Status to {act.parameters.isAvailable ? "Available" : "Unavailable"}</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
                       
                       {msg.role === "assistant" && msg.model && !msg.isError && (
                         <div className="flex items-center justify-end gap-1 mt-1 text-[9px] text-white/40 font-semibold select-none">

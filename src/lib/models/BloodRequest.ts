@@ -37,6 +37,10 @@ BloodRequestSchema.index({ status: 1, createdAt: -1 });
 BloodRequestSchema.index({ bloodType: 1, city: 1, status: 1 });
 BloodRequestSchema.index({ requestedBy: 1, status: 1 });
 
-export const BloodRequest =
+import { BloodRequestMemoryModel } from "@/lib/db/memoryStore";
+
+const MongooseBloodRequestModel =
   mongoose.models.BloodRequest ??
   mongoose.model<IBloodRequest>("BloodRequest", BloodRequestSchema);
+
+export const BloodRequest = process.env.MONGODB_URI ? MongooseBloodRequestModel : (BloodRequestMemoryModel as any);
