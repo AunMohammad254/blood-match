@@ -7,7 +7,8 @@ import { getRequests, cancelRequest } from "@/lib/api";
 import { RequestCard } from "@/components/RequestCard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { EmptyState } from "@/components/EmptyState";
-import { PlusCircle, AlertCircle } from "lucide-react";
+import { PlusCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { RequestCardSkeleton } from "@/components/Skeletons";
 
 export default function MyRequestsPage() {
   const [requests, setRequests] = useState<RecipientRequest[]>([]);
@@ -89,8 +90,13 @@ export default function MyRequestsPage() {
 
       {/* Request List */}
       <div>
-        {isLoading && <LoadingSpinner message="Fetching your blood requests..." />}
-
+        {isLoading && (
+          <div className="grid grid-cols-1 gap-6">
+            {[...Array(2)].map((_, i) => (
+              <RequestCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
         {error && (
           <div className="p-4 bg-red-50 rounded-2xl border border-red-200 flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-red-700 font-medium">
