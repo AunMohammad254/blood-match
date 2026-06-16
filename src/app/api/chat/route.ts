@@ -56,20 +56,10 @@ export async function POST(req: Request) {
                req.headers.get("x-real-ip") || 
                "127.0.0.1";
 
-    const oneMinuteAgo = new Date(Date.now() - 60000);
-
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    // Convert messages to Gemini format.
-    // Gemini requires: history must start with role "user" and alternate user/model.
-    // We exclude the last message (sent via sendMessage) and drop any leading assistant messages.
     const allButLast = messages.slice(0, -1);
-
-    // Find the first user message index — drop everything before it
-    const firstUserIdx = allButLast.findIndex(
-      (m: { role: string }) => m.role === "user"
-    );
-
+    const firstUserIdx = allButLast.findIndex((m: { role: string }) => m.role === "user");
     const validHistory = (firstUserIdx === -1 ? [] : allButLast.slice(firstUserIdx))
       .map((msg: { role: string; content: string }) => ({
         role: msg.role === "assistant" ? "model" : "user",
@@ -78,11 +68,11 @@ export async function POST(req: Request) {
 
     const lastMessage = messages[messages.length - 1];
 
-    // Priority models
+    // Priority models with adjusted RPM and RPD limits (-1 from standard)
     const models = [
-      { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", limit: 4 },
-      { id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash", limit: 4 },
-      { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash Lite", limit: 14 }
+      { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", rpm: 4, rpd: 19 },
+      { id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash", rpm: 4, rpd: 19 },
+      { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash Lite", rpm: 14, rpd: 499 }
     ];
 
     let responseSent = false;
@@ -90,19 +80,37 @@ export async function POST(req: Request) {
     let finalModel = null;
     let finalAction = null;
     let lastError = null;
+    let allModelsExceeded = true;
+    let rateLimitMessage = "";
 
     for (const modelCfg of models) {
-      // Check current rate limit count
-      const count = await ChatRequestLog.countDocuments({
+      // Check current RPM count (last 60 seconds)
+      const rpmCount = await ChatRequestLog.countDocuments({
         ip,
         modelName: modelCfg.id,
-        timestamp: { $gte: oneMinuteAgo }
+        timestamp: { $gte: new Date(Date.now() - 60000) }
       });
 
-      if (count >= modelCfg.limit) {
-        console.warn(`[POST /api/chat] Rate limit hit for model ${modelCfg.id} by IP ${ip} (${count}/${modelCfg.limit} reqs in last min)`);
-        continue; // Fallback to next model
+      // Check current RPD count (last 24 hours)
+      const rpdCount = await ChatRequestLog.countDocuments({
+        ip,
+        modelName: modelCfg.id,
+        timestamp: { $gte: new Date(Date.now() - 86400000) }
+      });
+
+      if (rpmCount >= modelCfg.rpm) {
+        console.warn(`[POST /api/chat] RPM limit hit for ${modelCfg.id} by IP ${ip}`);
+        rateLimitMessage = `You've reached the ${modelCfg.rpm} requests per minute limit for our AI models. Please wait a moment.`;
+        continue;
       }
+
+      if (rpdCount >= modelCfg.rpd) {
+        console.warn(`[POST /api/chat] RPD limit hit for ${modelCfg.id} by IP ${ip}`);
+        rateLimitMessage = `You've reached the daily limit of ${modelCfg.rpd} requests for this AI model.`;
+        continue;
+      }
+
+      allModelsExceeded = false;
 
       // Log the attempt
       await ChatRequestLog.create({
@@ -124,14 +132,8 @@ export async function POST(req: Request) {
                   parameters: {
                     type: SchemaType.OBJECT,
                     properties: {
-                      bloodType: {
-                        type: SchemaType.STRING,
-                        description: "The blood type to search for (e.g., A+, O-, B+)."
-                      },
-                      city: {
-                        type: SchemaType.STRING,
-                        description: "The city to filter donors by (e.g., Karachi, Lahore, Islamabad)."
-                      }
+                      bloodType: { type: SchemaType.STRING, description: "The blood type to search for." },
+                      city: { type: SchemaType.STRING, description: "The city to filter donors by." }
                     },
                     required: ["bloodType"]
                   }
@@ -142,24 +144,24 @@ export async function POST(req: Request) {
                   parameters: {
                     type: SchemaType.OBJECT,
                     properties: {
-                      patientName: { type: SchemaType.STRING, description: "Name of the patient." },
-                      bloodType: { type: SchemaType.STRING, description: "Blood type needed." },
-                      units: { type: SchemaType.NUMBER, description: "Number of blood units needed (1-20)." },
-                      hospital: { type: SchemaType.STRING, description: "Hospital name." },
-                      city: { type: SchemaType.STRING, description: "City name." },
-                      urgency: { type: SchemaType.STRING, description: "Urgency level: normal, urgent, or critical." },
-                      contactPhone: { type: SchemaType.STRING, description: "Contact phone number." }
+                      patientName: { type: SchemaType.STRING },
+                      bloodType: { type: SchemaType.STRING },
+                      units: { type: SchemaType.NUMBER },
+                      hospital: { type: SchemaType.STRING },
+                      city: { type: SchemaType.STRING },
+                      urgency: { type: SchemaType.STRING },
+                      contactPhone: { type: SchemaType.STRING }
                     },
                     required: ["bloodType"]
                   }
                 },
                 {
                   name: "toggleAvailability",
-                  description: "Toggle the current logged-in donor's availability status (available or unavailable).",
+                  description: "Toggle the current logged-in donor's availability status.",
                   parameters: {
                     type: SchemaType.OBJECT,
                     properties: {
-                      isAvailable: { type: SchemaType.BOOLEAN, description: "The target availability status (true to be active/available, false to be inactive)." }
+                      isAvailable: { type: SchemaType.BOOLEAN }
                     },
                     required: ["isAvailable"]
                   }
@@ -175,28 +177,17 @@ export async function POST(req: Request) {
         let text = "";
         try {
           text = result.response.text();
-        } catch (e) {
-          // No text response generated (common during pure function calling)
-        }
+        } catch (e) {}
 
         const functionCalls = result.response.functionCalls();
         let action = null;
         if (functionCalls && functionCalls.length > 0) {
           const call = functionCalls[0];
-          const args = call.args as any;
-          action = {
-            type: call.name,
-            parameters: args
-          };
-          
+          action = { type: call.name, parameters: call.args as any };
           if (!text) {
-            if (call.name === "searchDonors") {
-              text = `I've prepared a search for compatible ${args.bloodType} blood donors${args.city ? ` in ${args.city}` : ""}. Click the button below to view matches.`;
-            } else if (call.name === "createRequest") {
-              text = `I've prepared a draft request for ${args.units || 1} unit(s) of ${args.bloodType} blood${args.patientName ? ` for ${args.patientName}` : ""}${args.hospital ? ` at ${args.hospital}` : ""}. Click the button below to open and review the request form.`;
-            } else if (call.name === "toggleAvailability") {
-              text = `I understand you want to set your availability status to ${args.isAvailable ? "Available" : "Unavailable"}. Click the button below to confirm.`;
-            }
+            if (call.name === "searchDonors") text = `I've prepared a search for compatible ${(call.args as any).bloodType} blood donors. Click below to view.`;
+            else if (call.name === "createRequest") text = `I've prepared a draft request for ${(call.args as any).bloodType} blood. Click below to review.`;
+            else if (call.name === "toggleAvailability") text = `Confirm changing your status to ${(call.args as any).isAvailable ? "Available" : "Unavailable"}.`;
           }
         }
 
@@ -204,120 +195,51 @@ export async function POST(req: Request) {
         finalModel = modelCfg.displayName;
         finalAction = action;
         responseSent = true;
-        break; // Successfully got reply, exit loop
+        break;
       } catch (err: any) {
-        console.warn(`[POST /api/chat] Model ${modelCfg.id} fallback trigger: ${err.message || err}`);
+        console.warn(`[POST /api/chat] Model ${modelCfg.id} fallback: ${err.message || err}`);
         lastError = err;
-        // Continue to fallback
       }
     }
 
     if (responseSent) {
       let savedSessionId = chatSessionId;
-
-      // Handle chat history saving if user is logged in
       const decodedUser = verifyAuth(req);
       if (decodedUser) {
         try {
-          const userMessage = lastMessage;
-          const assistantReply = { role: "assistant", content: finalReply, model: finalModel };
-
           if (savedSessionId) {
-            // Update existing session
             const updatedSession = await ChatHistory.findOneAndUpdate(
               { _id: savedSessionId, userId: decodedUser.userId },
-              {
-                $push: {
-                  messages: {
-                    $each: [
-                      { role: "user", content: userMessage.content },
-                      { role: "assistant", content: assistantReply.content, model: assistantReply.model }
-                    ]
-                  }
-                }
-              },
+              { $push: { messages: { $each: [{ role: "user", content: lastMessage.content }, { role: "assistant", content: finalReply, model: finalModel }] } } },
               { new: true }
             );
-            if (!updatedSession) {
-              // If session was deleted or not found, clear it to force new session creation
-              savedSessionId = null;
-            }
+            if (!updatedSession) savedSessionId = null;
           }
-
           if (!savedSessionId) {
-            // Check session limit (max 5)
             const count = await ChatHistory.countDocuments({ userId: decodedUser.userId });
             if (count >= 5) {
-              // Delete the oldest session
               const oldest = await ChatHistory.findOne({ userId: decodedUser.userId }).sort({ updatedAt: 1 });
-              if (oldest) {
-                await ChatHistory.deleteOne({ _id: oldest._id });
-              }
+              if (oldest) await ChatHistory.deleteOne({ _id: oldest._id });
             }
-
-            // Create title from user query
-            let title = userMessage.content.trim();
-            if (title.length > 30) {
-              title = title.substring(0, 27) + "...";
-            }
-
-            // Create new session
             const newSession = await ChatHistory.create({
               userId: decodedUser.userId,
-              title,
-              messages: [
-                ...validHistory.map((m: any) => ({
-                  role: m.role === "model" ? "assistant" : "user",
-                  content: m.parts[0].text
-                })),
-                { role: "user", content: userMessage.content },
-                { role: "assistant", content: assistantReply.content, model: assistantReply.model }
-              ]
+              title: lastMessage.content.trim().substring(0, 30),
+              messages: [...validHistory.map((m: any) => ({ role: m.role === "model" ? "assistant" : "user", content: m.parts[0].text })), { role: "user", content: lastMessage.content }, { role: "assistant", content: finalReply, model: finalModel }]
             });
             savedSessionId = newSession._id.toString();
           }
         } catch (dbErr) {
-          console.error("[POST /api/chat] Error saving chat history:", dbErr);
+          console.error("[POST /api/chat] History error:", dbErr);
         }
       }
-
-      return NextResponse.json({
-        reply: finalReply,
-        action: finalAction,
-        model: finalModel,
-        chatSessionId: savedSessionId
-      });
+      return NextResponse.json({ reply: finalReply, action: finalAction, model: finalModel, chatSessionId: savedSessionId });
     }
 
-    // Check if we hit the rate limits for all models
-    const counts = await Promise.all(
-      models.map(m =>
-        ChatRequestLog.countDocuments({
-          ip,
-          modelName: m.id,
-          timestamp: { $gte: oneMinuteAgo }
-        })
-      )
-    );
-
-    const isAllRateLimited = models.every((m, idx) => counts[idx] >= m.limit);
-
-    if (isAllRateLimited) {
-      return NextResponse.json(
-        {
-          error: "You have exceeded the rate limit on all available AI models (Gemini 3.5 Flash: 4/min, Gemini 3 Flash: 4/min, Gemini 3.1 Flash Lite: 14/min). Please wait a minute before sending another message.",
-          code: "RATE_LIMIT_EXCEEDED"
-        },
-        { status: 429 }
-      );
+    if (!responseSent && allModelsExceeded) {
+      return NextResponse.json({ error: rateLimitMessage || "You have exceeded the rate limit. Please try again later.", code: "RATE_LIMIT_EXCEEDED" }, { status: 429 });
     }
 
-    // If it was another error
-    console.error("[POST /api/chat] Chat failed completely:", lastError?.message || lastError);
-    return NextResponse.json(
-      { error: "AI service error. Please try again later." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "AI service error. Please try again later." }, { status: 500 });
   } catch (err: any) {
     console.error("[POST /api/chat] Critical error:", err.message || err);
     return NextResponse.json({ error: "Server error. Please try again." }, { status: 500 });

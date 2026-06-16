@@ -12,8 +12,8 @@ const ChatRequestLogSchema = new Schema<IChatRequestLog>({
   timestamp: { type: Date, default: Date.now }
 });
 
-// TTL Index: automatically expire documents 60 seconds after their timestamp
-ChatRequestLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 60 });
+// TTL Index: automatically expire documents 24 hours after their timestamp
+ChatRequestLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 86400 });
 
 // Compound index for efficient querying of request counts
 ChatRequestLogSchema.index({ ip: 1, modelName: 1, timestamp: -1 });
