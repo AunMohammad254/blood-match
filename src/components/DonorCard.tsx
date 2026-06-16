@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { BloodType } from "@/lib/constants";
 import { BloodTypeBadge } from "./BloodTypeBadge";
 import { Phone, MapPin, ShieldCheck, Copy, Check } from "lucide-react";
+import { formatWhatsAppUrl } from "@/lib/utils";
 
 interface DonorCardProps {
   name: string;
@@ -11,7 +12,7 @@ interface DonorCardProps {
   isAvailable: boolean;
 }
 
-export const DonorCard: React.FC<DonorCardProps> = ({
+export const DonorCard = memo<DonorCardProps>(({
   name,
   bloodType,
   city,
@@ -96,7 +97,7 @@ export const DonorCard: React.FC<DonorCardProps> = ({
 
           {/* WhatsApp Redirect Button */}
           <a
-            href={`https://wa.me/${phone.startsWith("0") ? `92${phone.slice(1)}` : phone}`}
+            href={formatWhatsAppUrl(phone, `Hi ${name}, I saw your donor profile on BloodMatch and would like to reach out regarding a blood requirement.`)}
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-xs hover:shadow-md active:scale-[0.98] font-bold"
@@ -120,4 +121,6 @@ export const DonorCard: React.FC<DonorCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+DonorCard.displayName = "DonorCard";

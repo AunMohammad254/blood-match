@@ -36,7 +36,8 @@ export async function GET(req: Request) {
     }
 
     if (city && city.trim()) {
-      filter.city = { $regex: city.trim(), $options: "i" };
+      // Optimized: Exact match for indexed city field
+      filter.city = city.trim();
     }
 
     if (bloodType && bloodType !== "all") {
@@ -47,6 +48,7 @@ export async function GET(req: Request) {
 
     const requests = await BloodRequest.find(filter)
       .populate("requestedBy", "name city")
+      .select("patientName bloodType units hospital city urgency contactPhone status requestedBy createdAt")
       .sort({ createdAt: -1 })
       .lean();
 

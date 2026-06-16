@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { BloodType, UrgencyLevel, RequestStatus } from "@/lib/constants";
 import { BloodTypeBadge } from "./BloodTypeBadge";
 import { UrgencyBadge } from "./UrgencyBadge";
 import Link from "next/link";
 import { Hospital, MapPin, Phone, Calendar, Droplets, Share2, Sparkles, XCircle, Copy, Check } from "lucide-react";
+import { formatWhatsAppUrl, formatRelativeTime } from "@/lib/utils";
 
 interface RequestCardProps {
   id: string;
@@ -20,25 +21,7 @@ interface RequestCardProps {
   onCancel?: (id: string) => Promise<void>;
 }
 
-function formatRelativeTime(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (diffInSeconds < 60) return "just now";
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays}d ago`;
-  } catch {
-    return "recently";
-  }
-}
-
-export const RequestCard: React.FC<RequestCardProps> = ({
+export const RequestCard = memo<RequestCardProps>(({
   id,
   patientName,
   bloodType,
@@ -160,7 +143,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
 
             {/* WhatsApp Button */}
             <a
-              href={`https://wa.me/${contactPhone.startsWith("0") ? `92${contactPhone.slice(1)}` : contactPhone}`}
+              href={formatWhatsAppUrl(contactPhone, `Hi, I saw your blood request for ${patientName} on BloodMatch and would like to help.`)}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3.5 py-2 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-[11px] hover:shadow active:scale-[0.98] font-bold"
@@ -229,4 +212,6 @@ export const RequestCard: React.FC<RequestCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+RequestCard.displayName = "RequestCard";

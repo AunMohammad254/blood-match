@@ -8,6 +8,7 @@ import { getRequests, toggleAvailability, cancelRequest } from "@/lib/api";
 import { BloodTypeBadge } from "@/components/BloodTypeBadge";
 import { RequestCard } from "@/components/RequestCard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { RequestCardSkeleton } from "@/components/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
 import { PlusCircle, Search, AlertCircle, RefreshCw, Sparkles, Activity, ShieldCheck, HeartHandshake, MapPin } from "lucide-react";
 
@@ -196,7 +197,13 @@ export default function DashboardPage() {
                 </span>
               </div>
 
-              {isLoading && <LoadingSpinner message="Scanning recent local blood requirements..." />}
+              {isLoading && (
+                <div className="grid grid-cols-1 gap-6">
+                  {[...Array(3)].map((_, i) => (
+                    <RequestCardSkeleton key={i} />
+                  ))}
+                </div>
+              )}
 
               {error && (
                 <div className="p-5 bg-red-50 rounded-2xl border border-red-200 flex items-center justify-between text-xs font-black text-red-800 shadow-sm animate-fadeIn">
@@ -329,7 +336,13 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {isLoading && <LoadingSpinner message="Retrieving your posted requests log..." />}
+              {isLoading && (
+                <div className="grid grid-cols-1 gap-6">
+                  {[...Array(2)].map((_, i) => (
+                    <RequestCardSkeleton key={i} />
+                  ))}
+                </div>
+              )}
 
               {error && (
                 <div className="p-5 bg-red-50 rounded-2xl border border-red-200 flex items-center justify-between text-xs font-black text-red-800 shadow-sm animate-fadeIn">

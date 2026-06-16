@@ -9,6 +9,7 @@ import { MatchSearchForm } from "@/components/MatchSearchForm";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { EmptyState } from "@/components/EmptyState";
 import { AlertCircle, Sparkles } from "lucide-react";
+import { DonorCardSkeleton } from "@/components/Skeletons";
 
 function MatchResults() {
   const searchParams = useSearchParams();
@@ -84,7 +85,13 @@ function MatchResults() {
 
       {/* Results Section */}
       <div className="mt-10">
-        {isLoading && <LoadingSpinner message="Searching compatible active donors..." />}
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <DonorCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
 
         {error && (
           <div className="p-4 bg-red-50 rounded-2xl border border-red-200 flex items-center justify-between text-sm">

@@ -31,11 +31,12 @@ export async function GET(req: Request) {
     };
 
     if (city && city.trim()) {
-      query.city = { $regex: city.trim(), $options: "i" };
+      // Optimized: Use exact matching for indexed fields instead of regex
+      query.city = city.trim();
     }
 
     const donors = await User.find(query)
-      .select("-password -email -__v")
+      .select("name bloodType city phone isAvailable lastDonatedAt createdAt")
       .sort({ createdAt: 1 })
       .lean();
 

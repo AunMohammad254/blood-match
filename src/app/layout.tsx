@@ -3,9 +3,15 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import AiChatBot from "@/components/AiChatBot";
+import dynamic from "next/dynamic";
 
 const inter = Inter({ subsets: ["latin"] });
+
+// Lazily load the heavy AI ChatBot component to improve initial LCP/TTI
+const AiChatBot = dynamic(() => import("@/components/AiChatBot"), { 
+  ssr: false,
+  loading: () => null // Hide until loaded to prevent layout shift
+});
 
 export const metadata: Metadata = {
   title: "BloodMatch — Blood Donation Emergency Matching System",

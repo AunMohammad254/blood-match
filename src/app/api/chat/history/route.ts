@@ -15,18 +15,19 @@ export async function GET(req: Request) {
     const sessionId = searchParams.get("id");
 
     if (sessionId) {
-      // Fetch details of a specific session
-      const session = await ChatHistory.findOne({ _id: sessionId, userId: decoded.userId });
+      // Fetch details of a specific session - using .lean() for faster, read-only performance
+      const session = await ChatHistory.findOne({ _id: sessionId, userId: decoded.userId }).lean();
       if (!session) {
         return NextResponse.json({ error: "Session not found" }, { status: 404 });
       }
       return NextResponse.json({ session });
     }
 
-    // Retrieve list of up to 5 chat histories sorted by last updated
+    // Retrieve list of up to 5 chat histories sorted by last updated - optimized with .lean()
     const histories = await ChatHistory.find({ userId: decoded.userId })
       .sort({ updatedAt: -1 })
-      .limit(5);
+      .limit(5)
+      .lean();
 
     return NextResponse.json({ histories });
   } catch (err: any) {
