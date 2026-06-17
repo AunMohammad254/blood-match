@@ -33,6 +33,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ donors }, { status: 200 });
   } catch (err) {
     console.error("[GET_/api/donors]", err);
-    return NextResponse.json({ error: "Server error." }, { status: 500 });
+    return NextResponse.json({ error: "Server error.", debug: (err as Error)?.message, uri_defined: !!process.env.MONGODB_URI, uri_starts: process.env.MONGODB_URI?.substring(0, 20) }, { status: 500 });
   }
 }
