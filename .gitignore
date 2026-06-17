@@ -32,3 +32,8 @@ next-env.d.ts
 
 # Private docs
 PITCH_DECK_SCRIPT.md
+
+# Backed up corrupted git directory
+.git_corrupted/
+
+.vercel
