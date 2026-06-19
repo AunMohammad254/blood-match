@@ -49,7 +49,13 @@ class MockChatQuery<T> {
   constructor(private data: T | null, private isArray: boolean = false) {}
   sort(criteria: any) {
     if (this.isArray && Array.isArray(this.data)) {
-      this.data.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      this.data.sort((a, b) => new Date((b as any).updatedAt).getTime() - new Date((a as any).updatedAt).getTime());
+    }
+    return this;
+  }
+  skip(n: number) {
+    if (this.isArray && Array.isArray(this.data)) {
+      this.data = this.data.slice(n) as any;
     }
     return this;
   }
@@ -59,6 +65,19 @@ class MockChatQuery<T> {
     }
     return this;
   }
+  populate(field: string, select?: string) {
+    if (this.isArray && Array.isArray(this.data) && field === "userId") {
+      const { memoryDatabase } = require("@/lib/db/memoryStore");
+      this.data = this.data.map((chat: any) => {
+        const user = memoryDatabase.users.find((u: any) => u._id === chat.userId);
+        return { ...chat, userId: user ? { _id: user._id, name: user.name, email: user.email } : chat.userId };
+      }) as any;
+    }
+    return this;
+  }
+  lean() {
+    return this;
+  }
   then(onfulfilled?: ((value: T | null) => any) | null, onrejected?: ((reason: any) => any) | null): Promise<any> {
     return Promise.resolve(this.data).then(onfulfilled, onrejected);
   }
@@ -66,12 +85,15 @@ class MockChatQuery<T> {
 
 const ChatHistoryMemoryModel = {
   findOne: (query: any) => {
-    const match = memoryChatHistories.find((c) => c._id === query._id && c.userId === query.userId);
+    const match = memoryChatHistories.find((c) => (query._id ? c._id === query._id : true) && (query.userId ? c.userId === query.userId : true));
     return new MockChatQuery(match || null, false);
   },
   find: (query: any) => {
-    const matches = memoryChatHistories.filter((c) => c.userId === query.userId);
-    return new MockChatQuery([...matches], true);
+    let matches = [...memoryChatHistories];
+    if (query && query.userId) {
+      matches = matches.filter((c) => c.userId === query.userId);
+    }
+    return new MockChatQuery(matches, true);
   },
   create: async (data: any) => {
     const newSession: MockChatHistory = {
@@ -84,7 +106,7 @@ const ChatHistoryMemoryModel = {
     return newSession;
   },
   findOneAndUpdate: async (query: any, update: any, options?: any) => {
-    const idx = memoryChatHistories.findIndex((c) => c._id === query._id && c.userId === query.userId);
+    const idx = memoryChatHistories.findIndex((c) => c._id === query._id && (query.userId ? c.userId === query.userId : true));
     if (idx === -1) return null;
     const current = memoryChatHistories[idx];
     
@@ -107,13 +129,17 @@ const ChatHistoryMemoryModel = {
     return updated;
   },
   deleteOne: async (query: any) => {
-    const idx = memoryChatHistories.findIndex((c) => c._id === query._id && c.userId === query.userId);
+    const idx = memoryChatHistories.findIndex((c) => c._id === query._id && (query.userId ? c.userId === query.userId : true));
     if (idx === -1) return { deletedCount: 0 };
     memoryChatHistories.splice(idx, 1);
     return { deletedCount: 1 };
   },
   countDocuments: async (query: any) => {
-    return memoryChatHistories.filter((c) => c.userId === query.userId).length;
+    let matches = [...memoryChatHistories];
+    if (query && query.userId) {
+      matches = matches.filter((c) => c.userId === query.userId);
+    }
+    return matches.length;
   }
 };
 

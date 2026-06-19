@@ -37,3 +37,9 @@ PITCH_DECK_SCRIPT.md
 .git_corrupted/
 
 .vercel
+
+# AI agent
+GEMINI.md
+graphify-out/
+.agents/
+.history/

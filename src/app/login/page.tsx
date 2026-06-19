@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { isLoggedIn, saveAuth } from "@/lib/auth";
+import { isLoggedIn, saveAuth, getUser } from "@/lib/auth";
 import { loginUser } from "@/lib/api";
 import { Info, Lock, Mail, Sparkles, UserCheck, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
@@ -18,7 +18,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isLoggedIn()) {
-      router.push("/dashboard");
+      const user = getUser();
+      if (user?.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     }
   }, [router]);
 
@@ -33,13 +38,17 @@ export default function LoginPage() {
         password,
       });
 
-      const { token, user } = res.data;
-      saveAuth(token, user);
+      const { token, user: loggedInUser } = res.data;
+      saveAuth(token, loggedInUser);
       
       // Dispatch storage event so navbar instantly picks up user
       window.dispatchEvent(new Event("storage"));
 
-      router.push("/dashboard");
+      if (loggedInUser?.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       setError("Invalid email or password.");
     } finally {
@@ -54,6 +63,11 @@ export default function LoginPage() {
 
   const fillDemoRecipient = () => {
     setEmail("recipient@example.com");
+    setPassword("secret123");
+  };
+
+  const fillDemoAdmin = () => {
+    setEmail("admin@bloodmatch.com");
     setPassword("secret123");
   };
 
@@ -107,6 +121,13 @@ export default function LoginPage() {
               <span>🏥 Recipient (Dr.)</span>
             </button>
           </div>
+          <button
+            type="button"
+            onClick={fillDemoAdmin}
+            className="w-full mt-2 bg-white hover:bg-gray-900 text-gray-700 hover:text-white border border-gray-200 hover:border-transparent py-2.5 px-3 rounded-xl font-black text-[11px] shadow-xs active:scale-95 transition-all flex items-center justify-center gap-1.5"
+          >
+            <span>🛡️ Super Admin (Verified)</span>
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-8">

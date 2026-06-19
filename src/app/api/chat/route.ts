@@ -4,6 +4,73 @@ import { connectDB } from "@/lib/db/connect";
 import { ChatRequestLog } from "@/lib/models/ChatRequestLog";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { ChatHistory } from "@/lib/models/ChatHistory";
+import fs from "fs";
+import path from "path";
+
+// Helper to extract keywords from user query and match nodes in graph.json
+function getGraphContext(queryText: string): string {
+  try {
+    const graphPath = path.join(process.cwd(), "graphify-out", "graph.json");
+    if (!fs.existsSync(graphPath)) return "";
+
+    const graphData = JSON.parse(fs.readFileSync(graphPath, "utf-8"));
+    const nodes = graphData.nodes || [];
+    const links = graphData.links || [];
+
+    // Extract potential search terms from query (lowercase, alphanumeric keywords longer than 3 chars)
+    const terms = queryText
+      .toLowerCase()
+      .replace(/[^\w\s]/g, " ")
+      .split(/\s+/)
+      .filter((t) => t.length > 3);
+
+    if (terms.length === 0) return "";
+
+    // Find nodes matching any of the terms
+    const matchedNodes = nodes.filter((node: any) => {
+      const label = (node.label || "").toLowerCase();
+      const norm = (node.norm_label || "").toLowerCase();
+      return terms.some((term) => label.includes(term) || norm.includes(term));
+    });
+
+    if (matchedNodes.length === 0) return "";
+
+    // Take top 5 matched nodes
+    const topNodes = matchedNodes.slice(0, 5);
+    const nodeIds = new Set(topNodes.map((n: any) => n.id));
+
+    // Find links connecting these nodes
+    const relevantLinks = links.filter((link: any) => {
+      const src = typeof link.source === "object" ? link.source.id : link.source;
+      const tgt = typeof link.target === "object" ? link.target.id : link.target;
+      return nodeIds.has(src) || nodeIds.has(tgt);
+    });
+
+    // Build a compact text representation of the subgraph context
+    let contextStr = "RELEVANT SYSTEM ARCHITECTURE CONTEXT:\n";
+    topNodes.forEach((node: any) => {
+      contextStr += `- Node: ${node.label} (${node.file_type || "unknown"}), File: ${node.source_file || "N/A"}\n`;
+    });
+
+    if (relevantLinks.length > 0) {
+      contextStr += "RELATIONSHIPS:\n";
+      relevantLinks.slice(0, 5).forEach((link: any) => {
+        const src = typeof link.source === "object" ? link.source.id : link.source;
+        const tgt = typeof link.target === "object" ? link.target.id : link.target;
+        const srcNode = nodes.find((n: any) => n.id === src);
+        const tgtNode = nodes.find((n: any) => n.id === tgt);
+        if (srcNode && tgtNode) {
+          contextStr += `- ${srcNode.label} --[${link.relation || "related_to"}]--> ${tgtNode.label}\n`;
+        }
+      });
+    }
+
+    return contextStr;
+  } catch (err) {
+    console.error("[getGraphContext] Error:", err);
+    return "";
+  }
+}
 
 const SYSTEM_PROMPT = `You are BloodBot, an AI assistant for BloodMatch — a blood donation emergency matching platform in Pakistan.
 
@@ -36,6 +103,8 @@ TONE: Be concise, warm, and empathetic. This is a life-saving platform — users
 Always encourage users to call emergency services (1122 or 115 in Pakistan) for life-threatening emergencies.
 Keep responses short unless the user asks for detailed information.`;
 
+let genAIInstance: GoogleGenerativeAI | null = null;
+
 export async function POST(req: Request) {
   try {
     const { messages, chatSessionId } = await req.json();
@@ -56,11 +125,16 @@ export async function POST(req: Request) {
                req.headers.get("x-real-ip") || 
                "127.0.0.1";
 
-    const genAI = new GoogleGenerativeAI(apiKey);
+    if (!genAIInstance) {
+      genAIInstance = new GoogleGenerativeAI(apiKey);
+    }
+    const genAI = genAIInstance;
 
-    const allButLast = messages.slice(0, -1);
-    const firstUserIdx = allButLast.findIndex((m: { role: string }) => m.role === "user");
-    const validHistory = (firstUserIdx === -1 ? [] : allButLast.slice(firstUserIdx))
+    // Token optimization: Keep only the last 6 messages of history (3 turns of conversation)
+    const MAX_HISTORY_MESSAGES = 6;
+    const historySlice = messages.slice(-1 - MAX_HISTORY_MESSAGES, -1);
+    const firstUserIdx = historySlice.findIndex((m: { role: string }) => m.role === "user");
+    const validHistory = (firstUserIdx === -1 ? [] : historySlice.slice(firstUserIdx))
       .map((msg: { role: string; content: string }) => ({
         role: msg.role === "assistant" ? "model" : "user",
         parts: [{ text: msg.content }],
@@ -71,7 +145,7 @@ export async function POST(req: Request) {
     // Priority models with adjusted RPM and RPD limits (-1 from standard)
     const models = [
       { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", rpm: 4, rpd: 19 },
-      { id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash", rpm: 4, rpd: 19 },
+      { id: "gemini-3-flash-preview", displayName: "Gemini 3", rpm: 4, rpd: 19 },
       { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash Lite", rpm: 14, rpd: 499 }
     ];
 
@@ -84,19 +158,19 @@ export async function POST(req: Request) {
     let rateLimitMessage = "";
 
     for (const modelCfg of models) {
-      // Check current RPM count (last 60 seconds)
-      const rpmCount = await ChatRequestLog.countDocuments({
-        ip,
-        modelName: modelCfg.id,
-        timestamp: { $gte: new Date(Date.now() - 60000) }
-      });
-
-      // Check current RPD count (last 24 hours)
-      const rpdCount = await ChatRequestLog.countDocuments({
-        ip,
-        modelName: modelCfg.id,
-        timestamp: { $gte: new Date(Date.now() - 86400000) }
-      });
+      // Check current RPM count (last 60 seconds) and RPD count (last 24 hours) in parallel
+      const [rpmCount, rpdCount] = await Promise.all([
+        ChatRequestLog.countDocuments({
+          ip,
+          modelName: modelCfg.id,
+          timestamp: { $gte: new Date(Date.now() - 60000) }
+        }),
+        ChatRequestLog.countDocuments({
+          ip,
+          modelName: modelCfg.id,
+          timestamp: { $gte: new Date(Date.now() - 86400000) }
+        })
+      ]);
 
       if (rpmCount >= modelCfg.rpm) {
         console.warn(`[POST /api/chat] RPM limit hit for ${modelCfg.id} by IP ${ip}`);
@@ -120,9 +194,14 @@ export async function POST(req: Request) {
       });
 
       try {
+        const graphContext = getGraphContext(lastMessage.content);
+        const combinedPrompt = graphContext 
+          ? `${SYSTEM_PROMPT}\n\n${graphContext}`
+          : SYSTEM_PROMPT;
+
         const model = genAI.getGenerativeModel({
           model: modelCfg.id,
-          systemInstruction: SYSTEM_PROMPT,
+          systemInstruction: combinedPrompt,
           tools: [
             {
               functionDeclarations: [

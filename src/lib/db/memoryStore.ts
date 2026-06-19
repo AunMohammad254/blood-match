@@ -8,8 +8,9 @@ export interface MockUser {
   phone: string;
   bloodType: string;
   city: string;
-  role: "donor" | "recipient";
+  role: "donor" | "recipient" | "admin";
   isAvailable: boolean;
+  lastDonatedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,7 +25,7 @@ export interface MockBloodRequest {
   urgency: "normal" | "urgent" | "critical";
   contactPhone: string;
   requestedBy: any;
-  status: "open" | "fulfilled" | "cancelled";
+  status: "open" | "accepted" | "rejected" | "fulfilled" | "cancelled";
   createdAt: string;
   updatedAt: string;
   save?: () => Promise<void>;
@@ -43,6 +44,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    lastDonatedAt: "2024-03-15T10:00:00.000Z",
     createdAt: "2024-06-01T10:00:00.000Z",
     updatedAt: "2024-06-01T10:00:00.000Z",
   },
@@ -69,6 +71,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    lastDonatedAt: "2024-04-10T10:00:00.000Z",
     createdAt: "2024-06-02T10:00:00.000Z",
     updatedAt: "2024-06-02T10:00:00.000Z",
   },
@@ -95,6 +98,7 @@ export const initialUsers: MockUser[] = [
     city: "Lahore",
     role: "donor",
     isAvailable: true,
+    lastDonatedAt: "2024-05-01T10:00:00.000Z",
     createdAt: "2024-06-04T10:00:00.000Z",
     updatedAt: "2024-06-04T10:00:00.000Z",
   },
@@ -136,6 +140,19 @@ export const initialUsers: MockUser[] = [
     isAvailable: true,
     createdAt: "2024-06-07T10:00:00.000Z",
     updatedAt: "2024-06-07T10:00:00.000Z",
+  },
+  {
+    _id: "usr_admin_1",
+    name: "Admin",
+    email: "admin@bloodmatch.com",
+    password: defaultPasswordHash, // secret123
+    phone: "03000000000",
+    bloodType: "O+",
+    city: "Karachi",
+    role: "admin",
+    isAvailable: true,
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
   },
 ];
 
@@ -299,7 +316,31 @@ export const UserMemoryModel = {
 
     return new MockQuery(options?.new ? updated : current, false);
   },
-  countDocuments: async () => memoryDatabase.users.length,
+  deleteOne: async (query: any) => {
+    const idx = memoryDatabase.users.findIndex((u) => u._id === query._id || u._id.toString() === query._id);
+    if (idx === -1) return { deletedCount: 0 };
+    memoryDatabase.users.splice(idx, 1);
+    return { deletedCount: 1 };
+  },
+  countDocuments: async (query?: any) => {
+    if (!query) return memoryDatabase.users.length;
+    let matches = memoryDatabase.users;
+    if (query.role) matches = matches.filter((u) => u.role === query.role);
+    if (query.createdAt?.$gte) matches = matches.filter((u) => new Date(u.createdAt) >= new Date(query.createdAt.$gte));
+    return matches.length;
+  },
+  aggregate: async (pipeline: any[]) => {
+    // Basic mock for the specific aggregations used in stats
+    if (pipeline[0]?.$group?._id === "$bloodType") {
+      const counts: Record<string, number> = {};
+      memoryDatabase.users.forEach(u => {
+        counts[u.bloodType] = (counts[u.bloodType] || 0) + 1;
+      });
+      return Object.entries(counts).map(([_id, count]) => ({ _id, count }))
+        .sort((a, b) => b.count - a.count);
+    }
+    return [];
+  },
 };
 
 // BloodRequest Memory Operations
@@ -307,7 +348,11 @@ export const BloodRequestMemoryModel = {
   find: (query: any) => {
     let matches = memoryDatabase.bloodRequests;
     if (query.status) {
-      matches = matches.filter((r) => r.status === query.status);
+      if (query.status.$in) {
+        matches = matches.filter((r) => query.status.$in.includes(r.status));
+      } else {
+        matches = matches.filter((r) => r.status === query.status);
+      }
     }
     if (query.requestedBy) {
       matches = matches.filter((r) => r.requestedBy === query.requestedBy);
@@ -322,6 +367,9 @@ export const BloodRequestMemoryModel = {
     }
     if (query.bloodType) {
       matches = matches.filter((r) => r.bloodType === query.bloodType);
+    }
+    if (query.urgency) {
+      matches = matches.filter((r) => r.urgency === query.urgency);
     }
     return new MockQuery([...matches], true);
   },
@@ -357,5 +405,48 @@ export const BloodRequestMemoryModel = {
     };
     return mutableItem;
   },
-  countDocuments: async () => memoryDatabase.bloodRequests.length,
+  findByIdAndUpdate: async (id: string, update: any, options?: any) => {
+    const idx = memoryDatabase.bloodRequests.findIndex((r) => r._id === id);
+    if (idx === -1) return null;
+    const current = memoryDatabase.bloodRequests[idx];
+    const setData = update.$set || update;
+    const updated = { ...current, ...setData, updatedAt: new Date().toISOString() };
+    memoryDatabase.bloodRequests[idx] = updated;
+    return options?.new ? updated : current;
+  },
+  deleteOne: async (query: any) => {
+    const idx = memoryDatabase.bloodRequests.findIndex((r) => r._id === query._id || r._id === query.id);
+    if (idx === -1) return { deletedCount: 0 };
+    memoryDatabase.bloodRequests.splice(idx, 1);
+    return { deletedCount: 1 };
+  },
+  countDocuments: async (query?: any) => {
+    if (!query) return memoryDatabase.bloodRequests.length;
+    let matches = memoryDatabase.bloodRequests;
+    if (query.status) matches = matches.filter((r) => r.status === query.status);
+    if (query.urgency) matches = matches.filter((r) => r.urgency === query.urgency);
+    return matches.length;
+  },
+  aggregate: async (pipeline: any[]) => {
+    if (pipeline[0]?.$group?._id === "$city") {
+      const counts: Record<string, number> = {};
+      memoryDatabase.bloodRequests.forEach(r => {
+        counts[r.city] = (counts[r.city] || 0) + 1;
+      });
+      return Object.entries(counts).map(([_id, count]) => ({ _id, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    }
+    return [];
+  },
 };
+
+export const memoryLogs: any[] = [];
+
+export function pushChatLog(log: any) {
+  memoryLogs.push(log);
+  if (memoryLogs.length > 1000) {
+    memoryLogs.shift();
+  }
+}
+

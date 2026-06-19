@@ -23,7 +23,7 @@ const UserSchema = new Schema<IUser>(
     phone: { type: String, required: true },
     bloodType: { type: String, required: true, enum: BLOOD_TYPES },
     city: { type: String, required: true, trim: true },
-    role: { type: String, required: true, enum: ROLES, default: "donor" },
+    role: { type: String, required: true, enum: ["donor", "recipient", "admin"], default: "donor" },
     isAvailable: { type: Boolean, default: true },
     lastDonatedAt: { type: Date },
   },

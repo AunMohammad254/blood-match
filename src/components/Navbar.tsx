@@ -20,9 +20,12 @@ export const Navbar: React.FC = () => {
 
   useEffect(() => {
     checkUser();
+  }, [pathname]);
+
+  useEffect(() => {
     window.addEventListener("storage", checkUser);
     return () => window.removeEventListener("storage", checkUser);
-  }, [pathname]);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -67,6 +70,16 @@ export const Navbar: React.FC = () => {
                 <span>Hello, <strong className="font-black text-red-700">{user.name}</strong></span>
                 <span className="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">{user.role}</span>
               </Link>
+
+              {user.role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-red-500/20"
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span>Admin Panel</span>
+                </Link>
+              )}
 
               <Link
                 href="/dashboard"
@@ -137,6 +150,17 @@ export const Navbar: React.FC = () => {
                 </div>
                 <span className="bg-red-600 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full uppercase">{user.role}</span>
               </Link>
+
+              {user.role === "admin" && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="bg-red-600 text-white hover:bg-red-700 px-4 py-3.5 rounded-2xl font-black text-sm flex items-center gap-3 shadow-lg shadow-red-500/20"
+                >
+                  <UserIcon className="w-5 h-5" />
+                  <span>Admin Command Center</span>
+                </Link>
+              )}
 
               <Link
                 href="/dashboard"

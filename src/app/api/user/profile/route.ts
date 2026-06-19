@@ -3,6 +3,40 @@ import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import { verifyAuth } from "@/lib/middleware/auth";
 
+export async function GET(req: Request) {
+  try {
+    await connectDB();
+    const decoded = verifyAuth(req);
+
+    if (!decoded) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    const user = await User.findById(decoded.userId).select("-password -__v");
+    if (!user) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      user: {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        bloodType: user.bloodType,
+        city: user.city,
+        phone: user.phone,
+        isAvailable: user.isAvailable,
+        lastDonatedAt: user.lastDonatedAt,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (err) {
+    console.error("[GET_/api/user/profile]", err);
+    return NextResponse.json({ error: "Server error." }, { status: 500 });
+  }
+}
+
 export async function PATCH(req: Request) {
   try {
     await connectDB();

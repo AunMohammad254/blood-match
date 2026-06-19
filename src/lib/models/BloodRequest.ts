@@ -26,7 +26,7 @@ const BloodRequestSchema = new Schema<IBloodRequest>(
     urgency: { type: String, required: true, enum: URGENCY_LEVELS, default: "urgent" },
     contactPhone: { type: String, required: true },
     requestedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    status: { type: String, enum: REQUEST_STATUS, default: "open" },
+    status: { type: String, enum: ["open", "accepted", "rejected", "fulfilled", "cancelled"], default: "open" },
     matchedDonor: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }

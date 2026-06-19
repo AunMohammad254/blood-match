@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "BloodMatch — Blood Donation Emergency Matching System",
   description:
     "BloodMatch connects blood donors with patients in emergencies — fast, accurate, and free.",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({
