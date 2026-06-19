@@ -110,19 +110,19 @@ function CreateRequestForm() {
   if (isSuccess) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-12 text-center animate-fadeIn">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 p-12 text-center animate-fadeIn transition-colors duration-300">
           <div className="text-6xl mb-6">✅</div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
             Request posted successfully!
           </h2>
-          <p className="text-base text-gray-600 max-w-md mx-auto mb-10 leading-relaxed">
+          <p className="text-base text-gray-600 dark:text-slate-400 max-w-md mx-auto mb-10 leading-relaxed">
             Compatible active blood donors in <strong>{city}</strong> have been alerted about this urgent request.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href={`/dashboard/match?bloodType=${encodeURIComponent(bloodType)}&city=${encodeURIComponent(city)}`}
-              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2 text-sm"
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
               <Sparkles className="w-4 h-4" />
               <span>Find Matching Donors</span>
@@ -131,7 +131,7 @@ function CreateRequestForm() {
             <button
               type="button"
               onClick={resetForm}
-              className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold px-6 py-3.5 rounded-xl transition text-sm flex items-center justify-center"
+              className="border-2 border-gray-300 dark:border-slate-700 text-gray-700 dark:text-slate-350 hover:bg-gray-50 dark:hover:bg-slate-800 font-semibold px-6 py-3.5 rounded-xl transition text-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
               Post Another Request
             </button>
@@ -147,24 +147,24 @@ function CreateRequestForm() {
       <div className="mb-8">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-sm font-medium transition mb-4 -ml-3"
+          className="inline-flex items-center gap-1.5 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg text-sm font-medium transition mb-4 -ml-3 focus:outline-none focus:ring-2 focus:ring-red-500/50"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Dashboard</span>
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Post Blood Request</h1>
-        <p className="text-sm text-gray-600 mt-1.5">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Post Blood Request</h1>
+        <p className="text-sm text-gray-600 dark:text-slate-400 mt-1.5">
           Fill in the emergency details below. Compatible registered donors will be instantly alerted.
         </p>
       </div>
 
       {/* Form Card */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-800 p-8 transition-colors duration-300">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Row 1 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="reqPatient" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reqPatient" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
                 Patient Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -178,7 +178,7 @@ function CreateRequestForm() {
                 }}
                 placeholder="e.g. Zara Khan"
                 required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                className="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white transition-all duration-200"
               />
               {fieldErrors.patientName && (
                 <p className="text-red-500 text-xs mt-1 font-medium">
@@ -188,7 +188,7 @@ function CreateRequestForm() {
             </div>
 
             <div>
-              <label htmlFor="reqBloodType" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reqBloodType" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
                 Blood Type Needed <span className="text-red-500">*</span>
               </label>
               <select
@@ -196,10 +196,10 @@ function CreateRequestForm() {
                 value={bloodType}
                 onChange={(e) => setBloodType(e.target.value as BloodType)}
                 required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white font-medium"
+                className="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium transition-all duration-200"
               >
                 {BLOOD_TYPES.map((bt) => (
-                  <option key={bt} value={bt}>
+                  <option key={bt} value={bt} className="dark:bg-slate-900">
                     {bt}
                   </option>
                 ))}
@@ -210,7 +210,7 @@ function CreateRequestForm() {
           {/* Row 2 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="reqUnits" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+              <label htmlFor="reqUnits" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1 flex items-center gap-1">
                 <Droplets className="w-3.5 h-3.5 text-red-500" />
                 <span>Units Needed (1-20)</span> <span className="text-red-500">*</span>
               </label>
@@ -226,7 +226,7 @@ function CreateRequestForm() {
                     setFieldErrors({ ...fieldErrors, units: "" });
                 }}
                 required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                className="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white transition-all duration-200"
               />
               {fieldErrors.units && (
                 <p className="text-red-500 text-xs mt-1 font-medium">
@@ -236,7 +236,7 @@ function CreateRequestForm() {
             </div>
 
             <div>
-              <label htmlFor="reqUrgency" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reqUrgency" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
                 Urgency Level <span className="text-red-500">*</span>
               </label>
               <select
@@ -244,16 +244,16 @@ function CreateRequestForm() {
                 value={urgency}
                 onChange={(e) => setUrgency(e.target.value as UrgencyLevel)}
                 required
-                className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 font-medium ${
+                className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 font-medium transition-all duration-200 ${
                   urgency === "critical"
-                    ? "bg-red-50 border-red-300 text-red-800"
+                    ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-900/30 text-red-800 dark:text-red-400"
                     : urgency === "urgent"
-                    ? "bg-yellow-50 border-yellow-300 text-yellow-800"
-                    : "bg-gray-50 border-gray-300 text-gray-800"
+                    ? "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-300 dark:border-yellow-900/30 text-yellow-800 dark:text-yellow-400"
+                    : "bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-800 dark:text-slate-300"
                 }`}
               >
                 {URGENCY_LEVELS.map((u) => (
-                  <option key={u} value={u} className="bg-white text-gray-900">
+                  <option key={u} value={u} className="bg-white text-gray-900 dark:bg-slate-900 dark:text-white">
                     {u === "critical" && "🔴 Critical"}
                     {u === "urgent" && "🟡 Urgent"}
                     {u === "normal" && "🟢 Normal"}
@@ -265,18 +265,18 @@ function CreateRequestForm() {
 
           {/* Urgency Visual Hint Banner */}
           {urgency === "critical" && (
-            <div className="p-4 bg-red-50 rounded-2xl border border-red-200 flex items-start gap-3 animate-fadeIn">
+            <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-2xl border border-red-200 dark:border-red-900/30 flex items-start gap-3 animate-fadeIn">
               <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-              <p className="text-xs font-semibold text-red-800 leading-relaxed">
+              <p className="text-xs font-semibold text-red-850 dark:text-red-400 leading-relaxed">
                 ⚠️ Critical requests are shown at the top of all donor feeds. Please use only for extreme medical emergencies.
               </p>
             </div>
           )}
 
           {urgency === "urgent" && (
-            <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-200 flex items-start gap-3 animate-fadeIn">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-950/20 rounded-2xl border border-yellow-200 dark:border-yellow-900/30 flex items-start gap-3 animate-fadeIn">
               <Bell className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-              <p className="text-xs font-semibold text-yellow-800 leading-relaxed">
+              <p className="text-xs font-semibold text-yellow-850 dark:text-yellow-400 leading-relaxed">
                 🔔 Urgent requests are highlighted to donors nearby and prioritized in real-time alert logs.
               </p>
             </div>
@@ -285,7 +285,7 @@ function CreateRequestForm() {
           {/* Row 3 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="reqHospital" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reqHospital" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
                 Hospital Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -299,7 +299,7 @@ function CreateRequestForm() {
                 }}
                 placeholder="e.g. Aga Khan Hospital"
                 required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                className="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white transition-all duration-200"
               />
               {fieldErrors.hospital && (
                 <p className="text-red-500 text-xs mt-1 font-medium">
@@ -309,7 +309,7 @@ function CreateRequestForm() {
             </div>
 
             <div>
-              <label htmlFor="reqCity" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reqCity" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
                 City <span className="text-red-500">*</span>
               </label>
               <select
@@ -317,10 +317,10 @@ function CreateRequestForm() {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 required
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white font-medium"
+                className="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium transition-all duration-200"
               >
                 {CITIES.map((c) => (
-                  <option key={c} value={c}>
+                  <option key={c} value={c} className="dark:bg-slate-900">
                     {c}
                   </option>
                 ))}
@@ -330,7 +330,7 @@ function CreateRequestForm() {
 
           {/* Row 4 */}
           <div>
-            <label htmlFor="reqPhone" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="reqPhone" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
               Contact Phone Number <span className="text-red-500">*</span>
             </label>
             <input
@@ -344,7 +344,7 @@ function CreateRequestForm() {
               }}
               placeholder="e.g. 03111234567"
               required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+              className="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white transition-all duration-200"
             />
             {fieldErrors.contactPhone && (
               <p className="text-red-500 text-xs mt-1 font-medium">
@@ -354,8 +354,8 @@ function CreateRequestForm() {
           </div>
 
           {formError && (
-            <div className="p-3 bg-red-50 rounded-lg border border-red-200 mt-2">
-              <p className="text-red-600 text-xs font-semibold">{formError}</p>
+            <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-900/30 mt-2">
+              <p className="text-red-650 dark:text-red-400 text-xs font-semibold">{formError}</p>
             </div>
           )}
 
@@ -364,7 +364,7 @@ function CreateRequestForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm text-base"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
               {isLoading ? (
                 <>

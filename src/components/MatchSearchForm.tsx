@@ -29,7 +29,7 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white/95 backdrop-blur-2xl rounded-3xl border-2 border-gray-100/90 p-8 shadow-xl relative overflow-hidden group">
+    <form onSubmit={handleSubmit} className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl border-2 border-gray-100/90 dark:border-slate-800 p-8 shadow-xl relative overflow-hidden group transition-all duration-300">
       {/* Subtle Glow */}
       <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform" />
 
@@ -37,20 +37,20 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
         <div className="md:col-span-5">
           <label
             htmlFor="searchBloodType"
-            className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5"
+            className="block text-xs font-extrabold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"
           >
-            <Sparkles className="w-3.5 h-3.5 text-red-600" />
-            <span>Blood Type Needed <span className="text-red-600">*</span></span>
+            <Sparkles className="w-3.5 h-3.5 text-red-650" />
+            <span>Blood Type Needed <span className="text-red-500">*</span></span>
           </label>
           <select
             id="searchBloodType"
             value={bloodType}
             onChange={(e) => setBloodType(e.target.value)}
             required
-            className="w-full bg-gray-50/90 border-2 border-gray-200/80 rounded-2xl px-4 py-3.5 text-sm font-black text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white shadow-inner transition"
+            className="w-full bg-gray-50/90 dark:bg-slate-800 border-2 border-gray-200/80 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-black text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:bg-white dark:focus:bg-slate-900 shadow-inner transition"
           >
             {BLOOD_TYPES.map((bt) => (
-              <option key={bt} value={bt}>
+              <option key={bt} value={bt} className="dark:bg-slate-950">
                 {bt} Universal Group Fulfiller
               </option>
             ))}
@@ -60,20 +60,20 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
         <div className="md:col-span-4">
           <label
             htmlFor="searchCity"
-            className="block text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5"
+            className="block text-xs font-extrabold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"
           >
-            <Hospital className="w-3.5 h-3.5 text-red-600" />
+            <Hospital className="w-3.5 h-3.5 text-red-655" />
             <span>City Center (Optional)</span>
           </label>
           <select
             id="searchCity"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="w-full bg-gray-50/90 border-2 border-gray-200/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white shadow-inner transition"
+            className="w-full bg-gray-50/90 dark:bg-slate-800 border-2 border-gray-200/80 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:bg-white dark:focus:bg-slate-900 shadow-inner transition"
           >
-            <option value="">🌐 All Pakistan Cities</option>
+            <option value="" className="dark:bg-slate-950">🌐 All Pakistan Cities</option>
             {CITIES.map((c) => (
-              <option key={c} value={c}>
+              <option key={c} value={c} className="dark:bg-slate-950">
                 {c} Triage Hub
               </option>
             ))}

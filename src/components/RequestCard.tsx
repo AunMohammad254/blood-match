@@ -63,7 +63,7 @@ export const RequestCard = memo<RequestCardProps>(({
   };
 
   return (
-    <div className={`bg-white/95 backdrop-blur-xl rounded-3xl border border-gray-100 p-7 shadow-xs flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:border-red-100 relative overflow-hidden group ${
+    <div className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl border border-gray-100 dark:border-slate-800 p-7 shadow-xs flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:border-red-100 dark:hover:border-red-950/20 relative overflow-hidden group ${
       status === "cancelled" ? "opacity-60" : ""
     }`}>
       {/* Subtle Side Ribbon */}
@@ -75,14 +75,14 @@ export const RequestCard = memo<RequestCardProps>(({
         <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-[10px] font-extrabold uppercase tracking-widest text-gray-400">ID: {id}</span>
+              <span className="font-mono text-[10px] font-extrabold uppercase tracking-widest text-gray-400 dark:text-slate-500">ID: {id}</span>
               <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                statusColors[status] || "bg-gray-100 text-gray-600"
+                statusColors[status] || "bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400"
               }`}>
                 {status}
               </span>
             </div>
-            <h3 className="text-2xl font-black text-gray-900 tracking-tight group-hover:text-red-950 transition-colors">{patientName}</h3>
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight group-hover:text-red-950 dark:group-hover:text-red-400 transition-colors">{patientName}</h3>
           </div>
 
           <div className="flex items-center gap-2">
@@ -94,47 +94,47 @@ export const RequestCard = memo<RequestCardProps>(({
         </div>
 
         {/* Structured Data Rows */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 pt-4 border-t border-gray-100/80">
-          <div className="bg-gray-50/80 rounded-2xl p-3.5 border border-gray-100 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0">
-              <Hospital className="w-4 h-4 text-red-600" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 pt-4 border-t border-gray-100/80 dark:border-slate-800">
+          <div className="bg-gray-50/80 dark:bg-slate-800/40 rounded-2xl p-3.5 border border-gray-100 dark:border-slate-800 flex items-center gap-3 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 shadow-xs flex items-center justify-center shrink-0 transition-colors">
+              <Hospital className="w-4 h-4 text-red-655 dark:text-red-500" />
             </div>
             <div className="overflow-hidden">
-              <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">Medical Facility</span>
-              <span className="text-xs font-black text-gray-900 truncate block">{hospital}</span>
+              <span className="text-[10px] font-extrabold text-gray-400 dark:text-slate-500 uppercase tracking-wider block">Medical Facility</span>
+              <span className="text-xs font-black text-gray-900 dark:text-white truncate block">{hospital}</span>
             </div>
           </div>
 
-          <div className="bg-gray-50/80 rounded-2xl p-3.5 border border-gray-100 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white shadow-xs flex items-center justify-center shrink-0">
-              <MapPin className="w-4 h-4 text-red-600" />
+          <div className="bg-gray-50/80 dark:bg-slate-800/40 rounded-2xl p-3.5 border border-gray-100 dark:border-slate-800 flex items-center gap-3 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 shadow-xs flex items-center justify-center shrink-0 transition-colors">
+              <MapPin className="w-4 h-4 text-red-655 dark:text-red-500" />
             </div>
             <div className="overflow-hidden">
-              <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">Location Center</span>
-              <span className="text-xs font-black text-gray-900 truncate block">📍 {city} Area</span>
+              <span className="text-[10px] font-extrabold text-gray-400 dark:text-slate-500 uppercase tracking-wider block">Location Center</span>
+              <span className="text-xs font-black text-gray-900 dark:text-white truncate block">📍 {city} Area</span>
             </div>
           </div>
         </div>
 
         {/* Essential Quantity & Phone Strip */}
-        <div className="flex flex-col gap-3.5 bg-gradient-to-r from-red-500/10 via-rose-500/5 to-white rounded-2xl p-4 border border-red-100/80 mt-3">
+        <div className="flex flex-col gap-3.5 bg-gradient-to-r from-red-500/10 via-rose-500/5 to-white dark:from-red-950/20 dark:via-rose-955/5 dark:to-slate-900 rounded-2xl p-4 border border-red-100/80 dark:border-red-950/30 mt-3 transition-colors">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
-              <Droplets className="w-5 h-5 text-red-600 animate-pulse" />
+              <Droplets className="w-5 h-5 text-red-650 animate-pulse" />
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-red-900 block">Units Required</span>
-                <span className="text-sm font-black text-red-700">{units} Verified Unit{units > 1 ? "s" : ""}</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-red-900 dark:text-red-300 block">Units Required</span>
+                <span className="text-sm font-black text-red-700 dark:text-red-400">{units} Verified Unit{units > 1 ? "s" : ""}</span>
               </div>
             </div>
             
-            <span className="text-[10px] font-mono font-bold text-gray-500 uppercase tracking-widest">Contact Family</span>
+            <span className="text-[10px] font-mono font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest">Contact Family</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-red-100/30">
+          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-red-100/30 dark:border-red-950/20">
             {/* Dial Button */}
             <a
               href={`tel:${contactPhone}`}
-              className="flex-1 bg-white hover:bg-red-600 text-red-600 hover:text-white border border-red-200 hover:border-transparent font-extrabold py-2 px-3 rounded-xl transition text-[11px] flex items-center justify-center gap-1.5 shadow-xs hover:shadow active:scale-[0.98]"
+              className="flex-1 bg-white dark:bg-slate-900 hover:bg-red-600 dark:hover:bg-red-650 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-200 dark:border-slate-800 hover:border-transparent dark:hover:border-transparent font-extrabold py-2 px-3 rounded-xl transition text-[11px] flex items-center justify-center gap-1.5 shadow-xs hover:shadow active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-500/50"
               title="Call Family"
             >
               <Phone className="w-3.5 h-3.5" />
@@ -146,7 +146,7 @@ export const RequestCard = memo<RequestCardProps>(({
               href={formatWhatsAppUrl(contactPhone, `Hi, I saw your blood request for ${patientName} on BloodMatch and would like to help.`)}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3.5 py-2 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-[11px] hover:shadow active:scale-[0.98] font-bold"
+              className="px-3.5 py-2 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-[11px] hover:shadow active:scale-[0.98] font-bold focus:outline-none focus:ring-2 focus:ring-[#25D366]/50"
               title="WhatsApp Message"
             >
               <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -159,7 +159,7 @@ export const RequestCard = memo<RequestCardProps>(({
             <button
               type="button"
               onClick={handleCopy}
-              className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-[11px] shadow-xs active:scale-[0.98] font-bold"
+              className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-750 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-[11px] shadow-xs active:scale-[0.98] font-bold focus:outline-none focus:ring-2 focus:ring-red-500/50"
               title="Copy Number"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -170,9 +170,9 @@ export const RequestCard = memo<RequestCardProps>(({
       </div>
 
       {/* Action Footer */}
-      <div className="mt-7 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
-          <Calendar className="w-3.5 h-3.5 text-gray-400" />
+      <div className="mt-7 pt-4 border-t border-gray-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-400 dark:text-slate-500">
+          <Calendar className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" />
           <span>Posted {formatRelativeTime(createdAt)}</span>
         </div>
 
@@ -180,10 +180,10 @@ export const RequestCard = memo<RequestCardProps>(({
           {status === "open" && (
             <Link
               href={`/share?id=${id}`}
-              className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5 shadow-inner"
+              className="px-3.5 py-2 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-750 text-gray-800 dark:text-slate-200 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5 shadow-inner focus:outline-none focus:ring-2 focus:ring-red-500/50"
               title="Share this urgent request"
             >
-              <Share2 className="w-3.5 h-3.5 text-red-600" />
+              <Share2 className="w-3.5 h-3.5 text-red-650" />
               <span>Share</span>
             </Link>
           )}
@@ -192,7 +192,7 @@ export const RequestCard = memo<RequestCardProps>(({
             <button
               onClick={handleCancelClick}
               disabled={cancelling}
-              className="px-3.5 py-2 border-2 border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300 text-gray-600 rounded-xl text-xs font-black transition flex items-center gap-1"
+              className="px-3.5 py-2 border-2 border-gray-300 dark:border-slate-750 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-700 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-800 text-gray-600 dark:text-slate-350 rounded-xl text-xs font-black transition flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
               <XCircle className="w-3.5 h-3.5" />
               <span>{cancelling ? "Cancelling..." : "Cancel Request"}</span>

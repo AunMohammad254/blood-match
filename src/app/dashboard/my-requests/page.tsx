@@ -51,15 +51,15 @@ export default function MyRequestsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Blood Requests</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">My Blood Requests</h1>
+          <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
             Manage your posted emergency blood requests and check real-time donor fulfillment statuses.
           </p>
         </div>
 
         <Link
           href="/dashboard/request/new"
-          className="self-start sm:self-auto bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center gap-2 text-sm shadow-sm shrink-0"
+          className="self-start sm:self-auto bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-xl transition flex items-center gap-2 text-sm shadow-sm shrink-0 focus:outline-none focus:ring-2 focus:ring-red-500/50"
         >
           <PlusCircle className="w-4 h-4" />
           <span>New Request</span>
@@ -67,8 +67,8 @@ export default function MyRequestsPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm mb-8 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-2">Filter Status:</span>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-4 shadow-sm mb-8 flex flex-wrap items-center gap-2 transition-all duration-300">
+        <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider mr-2">Filter Status:</span>
         {filterPills.map((pill) => {
           const isActive = statusFilter === pill;
           return (
@@ -76,10 +76,10 @@ export default function MyRequestsPage() {
               key={pill}
               type="button"
               onClick={() => setStatusFilter(pill)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
                 isActive
                   ? "bg-red-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-350 hover:bg-gray-200 dark:hover:bg-slate-700"
               }`}
             >
               {pill}
@@ -98,14 +98,14 @@ export default function MyRequestsPage() {
           </div>
         )}
         {error && (
-          <div className="p-4 bg-red-50 rounded-2xl border border-red-200 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-red-700 font-medium">
+          <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-2xl border border-red-200 dark:border-red-900/30 flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-medium">
               <AlertCircle className="w-5 h-5 shrink-0" />
               <span>{error}</span>
             </div>
             <button
               onClick={fetchMyRequests}
-              className="px-4 py-1.5 bg-white border border-red-300 text-red-600 hover:bg-red-50 rounded-xl font-semibold transition"
+              className="px-4 py-1.5 bg-white dark:bg-slate-800 border border-red-300 dark:border-red-900/30 text-red-600 dark:text-red-450 hover:bg-red-50 dark:hover:bg-slate-700 rounded-xl font-semibold transition focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
               Retry
             </button>
@@ -123,13 +123,13 @@ export default function MyRequestsPage() {
         )}
 
         {!isLoading && !error && requests.length > 0 && filteredRequests.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-500 shadow-sm animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-12 text-center text-gray-500 dark:text-slate-400 shadow-sm animate-fadeIn transition-colors duration-300">
             <p className="text-sm font-medium">
-              No requests found matching status &quot;<span className="font-semibold text-gray-800 capitalize">{statusFilter}</span>&quot;.
+              No requests found matching status &quot;<span className="font-semibold text-gray-800 dark:text-white capitalize">{statusFilter}</span>&quot;.
             </p>
             <button
               onClick={() => setStatusFilter("All")}
-              className="mt-4 text-xs text-red-600 font-semibold hover:underline"
+              className="mt-4 text-xs text-red-600 dark:text-red-400 font-semibold hover:underline focus:outline-none focus:ring-2 focus:ring-red-500/50 rounded-sm"
             >
               Reset Status Filter
             </button>

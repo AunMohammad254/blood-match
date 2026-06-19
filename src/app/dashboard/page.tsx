@@ -136,12 +136,12 @@ export default function DashboardPage() {
           <div className="space-y-12">
             
             {/* Availability Neomorphic Command Toggle */}
-            <div className="bg-white/95 backdrop-blur-2xl rounded-3xl border-2 border-gray-100 shadow-xl p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden group">
+            <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl border-2 border-gray-100 dark:border-slate-800 shadow-xl p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden group transition-all duration-300">
               <div className="absolute -right-12 -bottom-12 w-40 h-40 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-colors pointer-events-none" />
 
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="text-xl font-black text-gray-900 tracking-tight">Your Triage Active Status</h3>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Your Triage Active Status</h3>
                   {statusMessage && (
                     <span className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full font-black animate-fadeIn flex items-center gap-1.5 shadow-inner">
                       <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
@@ -149,25 +149,25 @@ export default function DashboardPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-xs sm:text-sm text-gray-600 font-medium mt-1.5 max-w-xl leading-relaxed">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 font-medium mt-1.5 max-w-xl leading-relaxed">
                   Keep this toggle activated to show up instantly when nearby hospitals execute compatibility triages. Flip off if you travel or medically cannot fulfill requests right now.
                 </p>
               </div>
 
-              <div className="flex items-center gap-4 self-end sm:self-auto shrink-0 bg-gray-50 p-3 rounded-2xl border border-gray-200/80">
+              <div className="flex items-center gap-4 self-end sm:self-auto shrink-0 bg-gray-50 dark:bg-slate-850 p-3 rounded-2xl border border-gray-200/80 dark:border-slate-700/50 transition-all duration-300">
                 <div className="flex flex-col text-right">
-                  <span className={`text-sm font-black uppercase tracking-wider ${isAvailable ? "text-emerald-700" : "text-gray-400"}`}>
+                  <span className={`text-sm font-black uppercase tracking-wider ${isAvailable ? "text-emerald-700 dark:text-emerald-400" : "text-gray-400 dark:text-slate-500"}`}>
                     {isAvailable ? "Active Lifesaver" : "Currently Inactive"}
                   </span>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase">{isAvailable ? "Universal feed linked" : "Surveillance paused"}</span>
+                  <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase">{isAvailable ? "Universal feed linked" : "Surveillance paused"}</span>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleToggleAvailability}
                   disabled={updatingAvailability}
-                  className={`w-16 h-9 flex items-center rounded-full p-1.5 transition-all duration-300 focus:outline-none shadow-inner ${
-                    isAvailable ? "bg-gradient-to-r from-emerald-500 to-green-600 shadow-emerald-500/30" : "bg-gray-300"
+                  className={`w-16 h-9 flex items-center rounded-full p-1.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500/50 shadow-inner ${
+                    isAvailable ? "bg-gradient-to-r from-emerald-500 to-green-600 shadow-emerald-500/30" : "bg-gray-300 dark:bg-slate-700"
                   }`}
                   aria-label="Toggle availability state"
                 >
@@ -182,16 +182,16 @@ export default function DashboardPage() {
 
             {/* Tactical Open Requests Feed */}
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-200/80">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-200/80 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                   <div className="w-4 h-8 bg-red-600 rounded-full animate-pulse" />
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Open Hospital Requests</h2>
-                    <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider block mt-0.5">Showing emergency requests sorted by medical prioritization</span>
+                    <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Open Hospital Requests</h2>
+                    <span className="text-xs font-extrabold text-gray-500 dark:text-slate-400 uppercase tracking-wider block mt-0.5">Showing emergency requests sorted by medical prioritization</span>
                   </div>
                 </div>
 
-                <span className="inline-flex items-center gap-1.5 bg-red-100/80 text-red-800 border border-red-200 font-extrabold text-xs px-3.5 py-1.5 rounded-2xl shadow-xs">
+                <span className="inline-flex items-center gap-1.5 bg-red-100/80 dark:bg-red-950/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/30 font-extrabold text-xs px-3.5 py-1.5 rounded-2xl shadow-xs">
                   <Activity className="w-3.5 h-3.5 text-red-600 animate-spin" />
                   <span>Real-Time Broadcast</span>
                 </span>
@@ -206,14 +206,14 @@ export default function DashboardPage() {
               )}
 
               {error && (
-                <div className="p-5 bg-red-50 rounded-2xl border border-red-200 flex items-center justify-between text-xs font-black text-red-800 shadow-sm animate-fadeIn">
+                <div className="p-5 bg-red-50 dark:bg-red-950/20 rounded-2xl border border-red-200 dark:border-red-900/35 flex items-center justify-between text-xs font-black text-red-800 dark:text-red-400 shadow-sm animate-fadeIn">
                   <div className="flex items-center gap-2.5">
                     <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
                     <span>{error}</span>
                   </div>
                   <button
                     onClick={() => fetchData(user)}
-                    className="px-4 py-2 bg-white border border-red-300 text-red-700 hover:bg-red-100 rounded-xl transition"
+                    className="px-4 py-2 bg-white dark:bg-slate-800 border border-red-300 dark:border-red-900/30 text-red-700 dark:text-red-450 hover:bg-red-100 dark:hover:bg-slate-700 rounded-xl transition focus:outline-none focus:ring-2 focus:ring-red-500/50"
                   >
                     Retry Scan
                   </button>
@@ -257,22 +257,21 @@ export default function DashboardPage() {
         {/* RECIPIENT ECOSYSTEM */}
         {user.role === "recipient" && (
           <div className="space-y-12">
-            
-            {/* Quick Authoritative Action Suites */}
+                 {/* Quick Authoritative Action Suites */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               
               {/* Post Action */}
-              <div className="glass-card bg-gradient-to-br from-white via-white to-red-50/30 p-8 sm:p-10 rounded-3xl flex flex-col justify-between group border-2 hover:border-red-200 shadow-xl">
+              <div className="glass-card bg-gradient-to-br from-white dark:from-slate-900 via-white dark:via-slate-900 to-red-50/30 dark:to-red-950/10 p-8 sm:p-10 rounded-3xl flex flex-col justify-between group border-2 dark:border-slate-800 hover:border-red-200 dark:hover:border-red-900 shadow-xl transition-all duration-300">
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <div className="w-14 h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center text-3xl shadow-lg shadow-red-500/30 group-hover:scale-110 transition-transform">
                       <span>🔴</span>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-red-700 bg-red-100 px-3 py-1 rounded-full">Urgent Priority</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-red-700 bg-red-100 dark:bg-red-950/30 dark:text-red-400 px-3 py-1 rounded-full">Urgent Priority</span>
                   </div>
 
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Post Blood Request</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 font-medium mt-2.5 leading-relaxed">
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Post Blood Request</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 font-medium mt-2.5 leading-relaxed">
                     Instantly alert registered active blood donors across your city. The system automatically notifies matching lifesavers based on hematological compatibility.
                   </p>
                 </div>
@@ -289,17 +288,17 @@ export default function DashboardPage() {
               </div>
 
               {/* Match Scan Action */}
-              <div className="glass-card bg-gradient-to-br from-white via-white to-blue-50/20 p-8 sm:p-10 rounded-3xl flex flex-col justify-between group border-2 hover:border-blue-200 shadow-xl">
+              <div className="glass-card bg-gradient-to-br from-white dark:from-slate-900 via-white dark:via-slate-900 to-blue-50/20 dark:to-blue-950/10 p-8 sm:p-10 rounded-3xl flex flex-col justify-between group border-2 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-900 shadow-xl transition-all duration-300">
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-gray-900 text-white flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-900 dark:bg-slate-850 text-white flex items-center justify-center text-3xl shadow-lg group-hover:scale-110 transition-transform">
                       <span>🔍</span>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-100 px-3 py-1 rounded-full">Universal Scan</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-100 dark:bg-blue-950/30 dark:text-blue-400 px-3 py-1 rounded-full">Universal Scan</span>
                   </div>
 
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Scan Active Donors</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 font-medium mt-2.5 leading-relaxed">
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Scan Active Donors</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 font-medium mt-2.5 leading-relaxed">
                     Launch a fully customized query across our donor grid to filter active, verified available fulfillers in your area and dial them directly.
                   </p>
                 </div>
@@ -319,12 +318,12 @@ export default function DashboardPage() {
 
             {/* Recipient Recent Posted Log */}
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-200/80">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-200/80 dark:border-slate-800">
                 <div className="flex items-center gap-3">
                   <div className="w-4 h-8 bg-blue-600 rounded-full" />
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Your Recent Requests</h2>
-                    <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider block mt-0.5">Showing your recently authorized emergency broadcast posts</span>
+                    <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Your Recent Requests</h2>
+                    <span className="text-xs font-extrabold text-gray-500 dark:text-slate-400 uppercase tracking-wider block mt-0.5">Showing your recently authorized emergency broadcast posts</span>
                   </div>
                 </div>
 
@@ -345,14 +344,14 @@ export default function DashboardPage() {
               )}
 
               {error && (
-                <div className="p-5 bg-red-50 rounded-2xl border border-red-200 flex items-center justify-between text-xs font-black text-red-800 shadow-sm animate-fadeIn">
+                <div className="p-5 bg-red-50 dark:bg-red-950/20 rounded-2xl border border-red-200 dark:border-red-900/35 flex items-center justify-between text-xs font-black text-red-800 dark:text-red-400 shadow-sm animate-fadeIn">
                   <div className="flex items-center gap-2.5">
                     <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
                     <span>{error}</span>
                   </div>
                   <button
                     onClick={() => fetchData(user)}
-                    className="px-4 py-2 bg-white border border-red-300 text-red-700 hover:bg-red-100 rounded-xl transition"
+                    className="px-4 py-2 bg-white dark:bg-slate-800 border border-red-300 dark:border-red-900/30 text-red-700 dark:text-red-450 hover:bg-red-100 dark:hover:bg-slate-700 rounded-xl transition focus:outline-none focus:ring-2 focus:ring-red-500/50"
                   >
                     Retry Scan
                   </button>

@@ -35,8 +35,8 @@ export const DonorCard = memo<DonorCardProps>(({
 
   return (
     <div
-      className={`bg-white/95 backdrop-blur-xl rounded-3xl border border-gray-100 p-6 shadow-xs flex flex-col justify-between transition-all duration-300 relative overflow-hidden group ${
-        !isAvailable ? "opacity-55" : "hover:shadow-xl hover:border-red-100 hover:-translate-y-1"
+      className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl border border-gray-100 dark:border-slate-800 p-6 shadow-xs flex flex-col justify-between transition-all duration-300 relative overflow-hidden group ${
+        !isAvailable ? "opacity-55" : "hover:shadow-xl hover:border-red-100 dark:hover:border-red-950/20 hover:-translate-y-1"
       }`}
     >
       {/* Subtle Crimson Corner Accent */}
@@ -53,11 +53,11 @@ export const DonorCard = memo<DonorCardProps>(({
             <div>
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-green-600" />
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-green-700 bg-green-50 px-2 py-0.5 rounded-md">Verified</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2 py-0.5 rounded-md">Verified</span>
               </div>
-              <h3 className="text-lg font-black text-gray-900 tracking-tight mt-0.5">{name}</h3>
-              <div className="flex items-center gap-1 text-xs font-bold text-gray-500 mt-0.5">
-                <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight mt-0.5">{name}</h3>
+              <div className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-slate-400 mt-0.5">
+                <MapPin className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
                 <span>📍 {city} Area</span>
               </div>
             </div>
@@ -67,15 +67,15 @@ export const DonorCard = memo<DonorCardProps>(({
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs font-bold">
-          <span className="text-gray-500 uppercase tracking-wider text-[10px]">Active Triage Status</span>
+        <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold">
+          <span className="text-gray-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Active Triage Status</span>
           {isAvailable ? (
-            <span className="inline-flex items-center gap-1.5 text-green-700 font-extrabold text-xs bg-green-50 border border-green-200/80 px-3 py-1 rounded-full shadow-inner">
+            <span className="inline-flex items-center gap-1.5 text-green-700 dark:text-green-400 font-extrabold text-xs bg-green-50 dark:bg-green-950/20 border border-green-200/80 dark:border-green-900/30 px-3 py-1 rounded-full shadow-inner">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               <span>Available Fulfiller</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-gray-500 font-bold text-xs bg-gray-100 px-3 py-1 rounded-full shadow-inner">
+            <span className="inline-flex items-center gap-1.5 text-gray-500 dark:text-slate-400 font-bold text-xs bg-gray-100 dark:bg-slate-800 px-3 py-1 rounded-full shadow-inner">
               <span className="w-2 h-2 rounded-full bg-gray-400" />
               <span>Currently Inactive</span>
             </span>
@@ -88,7 +88,7 @@ export const DonorCard = memo<DonorCardProps>(({
           {/* Main Dial Button */}
           <a
             href={`tel:${phone}`}
-            className="flex-1 bg-white hover:bg-red-600 text-red-600 hover:text-white border-2 border-red-600 font-black py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-xs hover:shadow-md active:scale-[0.98] tracking-wide uppercase"
+            className="flex-1 bg-white dark:bg-slate-850 hover:bg-red-600 dark:hover:bg-red-650 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border-2 border-red-600 dark:border-red-750/40 dark:hover:border-transparent font-black py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-xs hover:shadow-md active:scale-[0.98] tracking-wide uppercase focus:outline-none focus:ring-2 focus:ring-red-500/50"
             title="Start Cellular Call"
           >
             <Phone className="w-3.5 h-3.5" />
@@ -100,7 +100,7 @@ export const DonorCard = memo<DonorCardProps>(({
             href={formatWhatsAppUrl(phone, `Hi ${name}, I saw your donor profile on BloodMatch and would like to reach out regarding a blood requirement.`)}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-xs hover:shadow-md active:scale-[0.98] font-bold"
+            className="px-4 py-3 bg-[#25D366] hover:bg-[#20BA5A] text-white rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-xs hover:shadow-md active:scale-[0.98] font-bold focus:outline-none focus:ring-2 focus:ring-[#25D366]/50"
             title="Chat on WhatsApp"
           >
             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -113,7 +113,7 @@ export const DonorCard = memo<DonorCardProps>(({
         {/* Copy / Number Showcase Button */}
         <button
           onClick={handleCopy}
-          className="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200/80 font-bold py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-[11px] shadow-inner"
+          className="w-full bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-750 text-gray-700 dark:text-slate-300 border border-gray-200/80 dark:border-slate-700 font-bold py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-[11px] shadow-inner focus:outline-none focus:ring-2 focus:ring-red-500/50"
         >
           {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
           <span>{copied ? "Number Copied!" : `Copy Number: ${phone}`}</span>

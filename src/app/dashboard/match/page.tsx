@@ -69,8 +69,8 @@ function MatchResults() {
     <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Find Compatible Donors</h1>
-        <p className="text-sm text-gray-600 mt-1.5">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Find Compatible Donors</h1>
+        <p className="text-sm text-gray-600 dark:text-slate-400 mt-1.5">
           Search by blood type and city to instantly find available verified donors nearby.
         </p>
       </div>
@@ -94,14 +94,14 @@ function MatchResults() {
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 rounded-2xl border border-red-200 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2 text-red-700 font-medium">
+          <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-2xl border border-red-200 dark:border-red-900/30 flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-medium">
               <AlertCircle className="w-5 h-5 shrink-0" />
               <span>{error}</span>
             </div>
             <button
               onClick={() => executeSearch(bloodType, city)}
-              className="px-4 py-1.5 bg-white border border-red-300 text-red-600 hover:bg-red-50 rounded-xl font-semibold transition"
+              className="px-4 py-1.5 bg-white dark:bg-slate-800 border border-red-300 dark:border-red-900/30 text-red-655 dark:text-red-400 hover:bg-red-50 dark:hover:bg-slate-700 rounded-xl font-semibold transition focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
               Retry
             </button>
@@ -110,19 +110,19 @@ function MatchResults() {
 
         {!isLoading && !error && hasSearched && donors.length > 0 && (
           <div className="animate-fadeIn">
-            <div className="mb-6 bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="mb-6 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition-all duration-300">
               <div>
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-red-600" />
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-red-650" />
                   <span>
                     Found {donors.length} compatible donor{donors.length > 1 ? "s" : ""} {city ? `in ${city}` : "overall"}
                   </span>
                 </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Requested for <strong className="text-red-700 font-semibold">{bloodType}</strong> · Universal Compatibility with: <span className="font-semibold text-gray-700">{compatibleTypes.join(", ")}</span>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                  Requested for <strong className="text-red-750 dark:text-red-400 font-semibold">{bloodType}</strong> · Universal Compatibility with: <span className="font-semibold text-gray-700 dark:text-slate-300">{compatibleTypes.join(", ")}</span>
                 </p>
               </div>
-              <span className="self-start sm:self-auto text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full">
+              <span className="self-start sm:self-auto text-xs bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-400 font-bold px-3 py-1 rounded-full">
                 Active Match
               </span>
             </div>
@@ -153,9 +153,9 @@ function MatchResults() {
         )}
 
         {!hasSearched && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-500 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-12 text-center text-gray-500 dark:text-slate-400 shadow-sm transition-all duration-300">
             <div className="text-5xl mb-4">🔍</div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">Ready to search</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Ready to search</h3>
             <p className="text-sm max-w-sm mx-auto">
               Select a blood type and optional city above to start matching with emergency donors.
             </p>

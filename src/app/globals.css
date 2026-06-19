@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 antialiased flex flex-col min-h-screen selection:bg-red-500 selection:text-white;
+    @apply bg-gray-50 text-gray-900 dark:bg-slate-950 dark:text-slate-100 antialiased flex flex-col min-h-screen selection:bg-red-500 selection:text-white;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }

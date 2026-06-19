@@ -20,24 +20,24 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   actionOnClick,
 }) => {
   return (
-    <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-gray-100/80 p-14 text-center shadow-xs hover:shadow-md transition-all duration-300 max-w-lg mx-auto flex flex-col items-center relative overflow-hidden group">
+    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-3xl border border-gray-100/80 dark:border-slate-800 p-14 text-center shadow-xs hover:shadow-md transition-all duration-300 max-w-lg mx-auto flex flex-col items-center relative overflow-hidden group">
       
       {/* Subtle Ambient Accents */}
       <div className="absolute -top-12 -right-12 w-32 h-32 bg-red-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-colors pointer-events-none" />
 
-      <div className="w-20 h-20 mb-6 rounded-3xl bg-gradient-to-br from-red-50 to-gray-50 border border-red-100/60 flex items-center justify-center text-5xl shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" aria-hidden="true">
+      <div className="w-20 h-20 mb-6 rounded-3xl bg-gradient-to-br from-red-50 dark:from-red-950/20 to-gray-50 dark:to-slate-800 border border-red-100/60 dark:border-red-900/30 flex items-center justify-center text-5xl shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" aria-hidden="true">
         {icon}
       </div>
 
-      <h3 className="text-xl font-black text-gray-900 mb-2 tracking-tight">{title}</h3>
-      <p className="text-xs text-gray-500 max-w-sm mb-8 leading-relaxed font-medium">
+      <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">{title}</h3>
+      <p className="text-xs text-gray-500 dark:text-slate-400 max-w-sm mb-8 leading-relaxed font-medium">
         {message}
       </p>
 
       {actionHref && (
         <Link
           href={actionHref}
-          className="btn-primary py-3.5 px-8 text-xs font-black tracking-wider uppercase"
+          className="btn-primary py-3.5 px-8 text-xs font-black tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-red-500/50"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>{actionLabel || "Get Started"}</span>
@@ -47,7 +47,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       {!actionHref && actionOnClick && actionLabel && (
         <button
           onClick={actionOnClick}
-          className="btn-primary py-3.5 px-8 text-xs font-black tracking-wider uppercase"
+          className="btn-primary py-3.5 px-8 text-xs font-black tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-red-500/50"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>{actionLabel}</span>
