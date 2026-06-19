@@ -7,13 +7,18 @@ import { ChatHistory } from "@/lib/models/ChatHistory";
 import fs from "fs";
 import path from "path";
 
+let cachedGraph: any = null;
+
 // Helper to extract keywords from user query and match nodes in graph.json
 function getGraphContext(queryText: string): string {
   try {
     const graphPath = path.join(process.cwd(), "graphify-out", "graph.json");
     if (!fs.existsSync(graphPath)) return "";
 
-    const graphData = JSON.parse(fs.readFileSync(graphPath, "utf-8"));
+    if (!cachedGraph) {
+      cachedGraph = JSON.parse(fs.readFileSync(graphPath, "utf-8"));
+    }
+    const graphData = cachedGraph;
     const nodes = graphData.nodes || [];
     const links = graphData.links || [];
 
@@ -144,9 +149,10 @@ export async function POST(req: Request) {
 
     // Priority models with adjusted RPM and RPD limits (-1 from standard)
     const models = [
+      { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", rpm: 14, rpd: 499 },
+      { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash Lite", rpm: 14, rpd: 499 },
       { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", rpm: 4, rpd: 19 },
-      { id: "gemini-3-flash-preview", displayName: "Gemini 3", rpm: 4, rpd: 19 },
-      { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash Lite", rpm: 14, rpd: 499 }
+      { id: "gemini-3-flash-preview", displayName: "Gemini 3", rpm: 4, rpd: 19 }
     ];
 
     let responseSent = false;
