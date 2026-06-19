@@ -97,29 +97,29 @@ function RegisterForm() {
 
   if (isSuccess) {
     return (
-      <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-100 p-12 text-center max-w-md w-full animate-fadeIn space-y-6">
-        <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-inner border border-green-200">
+      <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-12 text-center max-w-md w-full animate-fadeIn space-y-6">
+        <div className="w-20 h-20 bg-green-50 dark:bg-green-950/20 text-green-650 dark:text-green-400 rounded-full flex items-center justify-center mx-auto shadow-inner border border-green-200 dark:border-green-900/40">
           <CheckCircle2 className="w-10 h-10" />
         </div>
         <div>
-          <h2 className="text-2xl font-black text-gray-900">Account Created!</h2>
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-1">Calibrating Transfusion Profile</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Account Created!</h2>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-405 uppercase tracking-wider mt-1">Calibrating Transfusion Profile</p>
         </div>
-        <p className="text-sm text-gray-600 font-medium">
+        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
           Redirecting to command authorization gateway...
         </p>
-        <div className="w-8 h-8 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mx-auto" />
+        <div className="w-8 h-8 border-4 border-red-200 border-t-red-650 rounded-full animate-spin mx-auto" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-gray-100 p-8 sm:p-12 max-w-lg w-full relative z-10 group">
+    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-150 dark:border-slate-800 p-8 sm:p-12 max-w-lg w-full relative z-10 group">
       
       {/* Return home link */}
       <Link
         href="/"
-        className="inline-flex items-center gap-1.5 text-gray-500 hover:text-gray-900 text-xs font-bold transition mb-6"
+        className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition mb-6 focus:outline-none focus:ring-2 focus:ring-red-500/50 rounded-lg p-0.5"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         <span>Return Home</span>
@@ -129,23 +129,23 @@ function RegisterForm() {
         <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-red-600 to-red-800 text-white flex items-center justify-center text-3xl shadow-lg shadow-red-500/30 mx-auto mb-4 group-hover:scale-110 group-hover:rotate-6 transition-transform">
           <span>🩸</span>
         </div>
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Create Your Account</h1>
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-1">Join Local Transfusion Network</p>
+        <h1 className="text-3xl font-black text-slate-905 dark:text-white tracking-tight">Create Your Account</h1>
+        <p className="text-xs font-bold text-slate-505 dark:text-slate-400 uppercase tracking-wider mt-1">Join Local Transfusion Network</p>
       </div>
 
       {/* Interactive Role Toggle */}
       <div className="mt-8">
-        <span className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2 text-center">
+        <span className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 text-center">
           Choose Your User Profile Role
         </span>
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => setRole("donor")}
-            className={`py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 ${
+            className={`py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 ${
               role === "donor"
-                ? "bg-red-600 text-white shadow-lg shadow-red-500/30 ring-2 ring-red-600 ring-offset-2"
-                : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200/80"
+                ? "bg-red-600 text-white shadow-lg shadow-red-500/30"
+                : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 border-2 border-slate-200/80 dark:border-slate-700/80"
             }`}
           >
             <HeartHandshake className="w-4 h-4" />
@@ -155,10 +155,10 @@ function RegisterForm() {
           <button
             type="button"
             onClick={() => setRole("recipient")}
-            className={`py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 ${
+            className={`py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 ${
               role === "recipient"
-                ? "bg-red-600 text-white shadow-lg shadow-red-500/30 ring-2 ring-red-600 ring-offset-2"
-                : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-2 border-gray-200/80"
+                ? "bg-red-600 text-white shadow-lg shadow-red-500/30"
+                : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 border-2 border-slate-200/80 dark:border-slate-700/80"
             }`}
           >
             <PhoneCall className="w-4 h-4" />
@@ -169,9 +169,9 @@ function RegisterForm() {
 
       <form onSubmit={handleSubmit} className="space-y-4 mt-8">
         <div>
-          <label htmlFor="regName" className="block text-xs font-black text-gray-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <UserPlus className="w-3.5 h-3.5 text-red-600" />
-            <span>Full Verified Name <span className="text-red-600">*</span></span>
+          <label htmlFor="regName" className="block text-xs font-black text-slate-655 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <UserPlus className="w-3.5 h-3.5 text-red-655" />
+            <span>Full Verified Name <span className="text-red-655">*</span></span>
           </label>
           <input
             id="regName"
@@ -183,17 +183,17 @@ function RegisterForm() {
             }}
             placeholder="e.g. Aun Abbas"
             required
-            className="w-full bg-gray-50/90 border-2 border-gray-200/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+            className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
           />
           {fieldErrors.name && (
-            <p className="text-red-600 text-xs mt-1 font-bold">{fieldErrors.name}</p>
+            <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-bold">{fieldErrors.name}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="regEmail" className="block text-xs font-black text-gray-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <Mail className="w-3.5 h-3.5 text-red-600" />
-            <span>Email Address <span className="text-red-600">*</span></span>
+          <label htmlFor="regEmail" className="block text-xs font-black text-slate-655 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Mail className="w-3.5 h-3.5 text-red-655" />
+            <span>Email Address <span className="text-red-655">*</span></span>
           </label>
           <input
             id="regEmail"
@@ -205,17 +205,17 @@ function RegisterForm() {
             }}
             placeholder="e.g. aun@example.com"
             required
-            className="w-full bg-gray-50/90 border-2 border-gray-200/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+            className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
           />
           {fieldErrors.email && (
-            <p className="text-red-600 text-xs mt-1 font-bold">{fieldErrors.email}</p>
+            <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-bold">{fieldErrors.email}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="regPassword" className="block text-xs font-black text-gray-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <Lock className="w-3.5 h-3.5 text-red-600" />
-            <span>Account Password <span className="text-red-600">*</span></span>
+          <label htmlFor="regPassword" className="block text-xs font-black text-slate-655 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 text-red-655" />
+            <span>Account Password <span className="text-red-655">*</span></span>
           </label>
           <div className="relative">
             <input
@@ -229,27 +229,27 @@ function RegisterForm() {
               placeholder="Minimum 6 characters"
               required
               minLength={6}
-              className="w-full bg-gray-50/90 border-2 border-gray-200/80 rounded-2xl px-4 py-3.5 pr-12 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+              className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 pr-12 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
             />
             <button
               type="button"
               id="reg-toggle-password-visibility"
               onClick={() => setShowPassword((v) => !v)}
               aria-label={showPassword ? "Hide password" : "Show password"}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all duration-200"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {fieldErrors.password && (
-            <p className="text-red-600 text-xs mt-1 font-bold">{fieldErrors.password}</p>
+            <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-bold">{fieldErrors.password}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="regPhone" className="block text-xs font-black text-gray-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <Phone className="w-3.5 h-3.5 text-red-600" />
-            <span>Cellular Phone Number <span className="text-red-600">*</span></span>
+          <label htmlFor="regPhone" className="block text-xs font-black text-slate-655 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Phone className="w-3.5 h-3.5 text-red-655" />
+            <span>Cellular Phone Number <span className="text-red-655">*</span></span>
           </label>
           <input
             id="regPhone"
@@ -261,28 +261,28 @@ function RegisterForm() {
             }}
             placeholder="e.g. 03001234567"
             required
-            className="w-full bg-gray-50/90 border-2 border-gray-200/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+            className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
           />
           {fieldErrors.phone && (
-            <p className="text-red-600 text-xs mt-1 font-bold">{fieldErrors.phone}</p>
+            <p className="text-red-600 dark:text-red-400 text-xs mt-1 font-bold">{fieldErrors.phone}</p>
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="regBlood" className="block text-xs font-black text-gray-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Droplets className="w-3.5 h-3.5 text-red-600" />
-              <span>Blood Group <span className="text-red-600">*</span></span>
+            <label htmlFor="regBlood" className="block text-xs font-black text-slate-655 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Droplets className="w-3.5 h-3.5 text-red-655" />
+              <span>Blood Group <span className="text-red-655">*</span></span>
             </label>
             <select
               id="regBlood"
               value={bloodType}
               onChange={(e) => setBloodType(e.target.value as BloodType)}
               required
-              className="w-full bg-gray-50/90 border-2 border-gray-200/80 rounded-2xl px-4 py-3.5 text-sm font-black text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+              className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
             >
               {BLOOD_TYPES.map((bt) => (
-                <option key={bt} value={bt}>
+                <option key={bt} value={bt} className="bg-white dark:bg-slate-950">
                   {bt}
                 </option>
               ))}
@@ -290,19 +290,19 @@ function RegisterForm() {
           </div>
 
           <div>
-            <label htmlFor="regCity" className="block text-xs font-black text-gray-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-red-600" />
-              <span>City Hub <span className="text-red-600">*</span></span>
+            <label htmlFor="regCity" className="block text-xs font-black text-slate-655 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-red-655" />
+              <span>City Hub <span className="text-red-655">*</span></span>
             </label>
             <select
               id="regCity"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               required
-              className="w-full bg-gray-50/90 border-2 border-gray-200/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition"
+              className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
             >
               {CITIES.map((c) => (
-                <option key={c} value={c}>
+                <option key={c} value={c} className="bg-white dark:bg-slate-955">
                   {c} Center
                 </option>
               ))}
@@ -311,7 +311,7 @@ function RegisterForm() {
         </div>
 
         {formError && (
-          <div className="p-3.5 bg-red-50 rounded-2xl border border-red-200 text-xs font-black text-red-700 animate-fadeIn">
+          <div className="p-3.5 bg-red-50 dark:bg-red-955/35 rounded-2xl border border-red-200 dark:border-red-900/40 text-xs font-black text-red-700 dark:text-red-300 animate-fadeIn">
             <span>{formError}</span>
           </div>
         )}
@@ -320,26 +320,26 @@ function RegisterForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full btn-primary py-4 text-xs font-black uppercase tracking-widest shadow-xl shadow-red-500/30"
+            className="w-full btn-primary py-4 text-xs font-black uppercase tracking-widest shadow-xl shadow-red-500/30 focus:outline-none focus:ring-2 focus:ring-red-500/50"
           >
             {isLoading ? (
-              <>
+              <div className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-red-200 border-t-white rounded-full animate-spin" />
                 <span>Enrolling Profile...</span>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="flex items-center justify-center gap-2">
                 <UserPlus className="w-4 h-4" />
                 <span>Create Registered Account</span>
-              </>
+              </div>
             )}
           </button>
         </div>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-        <span className="text-xs text-gray-500 font-medium">Already enrolled? </span>
-        <Link href="/login" className="text-xs text-red-600 font-black hover:underline tracking-wider uppercase ml-1">
+      <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
+        <span className="text-xs text-slate-500 dark:text-slate-450 font-medium">Already enrolled? </span>
+        <Link href="/login" className="text-xs text-red-650 dark:text-red-400 font-black hover:underline tracking-wider uppercase ml-1 focus:outline-none focus:ring-2 focus:ring-red-500/50 rounded p-0.5">
           Authorize Login →
         </Link>
       </div>
@@ -350,13 +350,13 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-gray-50 via-white to-rose-50/30 flex items-center justify-center py-16 px-4 relative overflow-hidden">
+    <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-br from-slate-50 via-white to-rose-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-red-950/10 flex items-center justify-center py-16 px-4 relative overflow-hidden">
       
       {/* Ambient Glows */}
       <div className="absolute -top-10 left-10 w-96 h-96 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-96 h-96 bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <Suspense fallback={<div className="w-12 h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin relative z-10" />}>
+      <Suspense fallback={<div className="w-12 h-12 border-4 border-red-200 border-t-red-650 rounded-full animate-spin relative z-10" />}>
         <RegisterForm />
       </Suspense>
     </div>

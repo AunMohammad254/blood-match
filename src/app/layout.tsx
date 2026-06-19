@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/components/ToastProvider";
 import dynamic from "next/dynamic";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -28,13 +30,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <Navbar />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-        {/* Global AI Assistant — available on every page */}
-        <AiChatBot />
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} transition-colors duration-200`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Navbar />
+          <main className="flex-grow">{children}</main>
+          <Footer />
+          {/* Global AI Assistant — available on every page */}
+          <AiChatBot />
+          {/* Global toast notification system */}
+          <ToastProvider />
+        </ThemeProvider>
       </body>
     </html>
   );

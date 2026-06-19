@@ -16,6 +16,7 @@ import {
   Activity,
   HeartHandshake,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -88,7 +89,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex transition-colors duration-200">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -99,13 +100,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-gray-900 border-r border-gray-800 z-40 flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 left-0 h-full w-64 bg-slate-900 border-r border-slate-850 z-40 flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
         {/* Brand */}
-        <div className="px-5 py-5 border-b border-gray-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gray-950 flex items-center justify-center border border-gray-700 overflow-hidden flex-shrink-0">
+        <div className="px-5 py-5 border-b border-slate-800 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-slate-950 flex items-center justify-center border border-slate-700 overflow-hidden flex-shrink-0">
             <Image src="/logo.png" alt="Logo" width={36} height={36} className="w-full h-full object-cover" />
           </div>
           <div>
@@ -129,7 +130,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
                   active
                     ? "bg-red-600/20 text-red-400 border border-red-500/30"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
               >
                 <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-red-400" : ""}`} />
@@ -140,19 +141,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* User info & logout */}
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-slate-850">
           <div className="flex items-center gap-3 mb-3 px-1">
             <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center flex-shrink-0">
               <ShieldAlert className="w-4 h-4 text-white" />
             </div>
             <div className="min-w-0">
               <p className="text-white text-xs font-black truncate">{user?.name}</p>
-              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">Super Admin</p>
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Super Admin</p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
@@ -163,24 +164,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main content */}
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
         {/* Top bar */}
-        <header className="sticky top-0 z-20 bg-gray-900/95 backdrop-blur-xl border-b border-gray-800 px-4 h-14 flex items-center justify-between">
+        <header className="sticky top-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800/80 px-4 h-14 flex items-center justify-between transition-colors">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="md:hidden w-9 h-9 rounded-lg bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white"
+              className="md:hidden w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest hidden sm:block">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest hidden sm:block">
                 Admin Control Center
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-red-500 animate-pulse" />
-            <span className="text-xs font-black text-gray-300 hidden sm:block">BloodMatch Command</span>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-red-500 animate-pulse" />
+              <span className="text-xs font-black text-slate-700 dark:text-slate-350 hidden sm:block">BloodMatch Command</span>
+            </div>
           </div>
         </header>
 

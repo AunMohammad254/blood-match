@@ -12,7 +12,6 @@ import {
   MapPin, 
   Hospital, 
   Phone, 
-  User as UserIcon, 
   Filter, 
   Sparkles, 
   Play, 
@@ -21,7 +20,6 @@ import {
   ArrowLeft,
   Clock,
   ShieldCheck,
-  AlertCircle,
   Copy,
   Check
 } from "lucide-react";
@@ -147,22 +145,22 @@ export default function RadarPage() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 animate-fadeIn">
+    <div className="max-w-6xl mx-auto px-4 py-8 animate-fadeIn text-slate-800 dark:text-slate-100">
       {/* Navigation Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-sm font-medium transition mb-2 -ml-3"
+            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg text-sm font-medium transition mb-2 -ml-3 focus:outline-none focus:ring-2 focus:ring-red-500/50"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Dashboard</span>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
-            <RadarIcon className="w-8 h-8 text-red-600" />
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <RadarIcon className="w-8 h-8 text-red-655" />
             <span>Emergency Logistics Radar</span>
           </h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             Real-time graphical command center monitoring active blood donors and estimated emergency travel times.
           </p>
         </div>
@@ -171,10 +169,10 @@ export default function RadarPage() {
           <button
             type="button"
             onClick={() => setIsSweeping(!isSweeping)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-red-500/50 ${
               isSweeping 
-                ? "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200" 
-                : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
+                ? "bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/40" 
+                : "bg-green-50 dark:bg-green-955/20 text-green-700 dark:text-green-400 hover:bg-green-105 dark:hover:bg-green-955/40 border border-green-200 dark:border-green-900/40"
             }`}
           >
             {isSweeping ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -184,27 +182,27 @@ export default function RadarPage() {
       </div>
 
       {/* Control Panel Toolbar */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm mb-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
         <div>
-          <label htmlFor="radarCity" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-            <Hospital className="w-3.5 h-3.5 text-red-600" />
+          <label htmlFor="radarCity" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <Hospital className="w-3.5 h-3.5 text-red-655" />
             <span>Center Triage Hub (City)</span>
           </label>
           <select
             id="radarCity"
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full bg-slate-50 dark:bg-slate-805 border border-slate-250 dark:border-slate-750 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
           >
             {CITIES.map((c) => (
-              <option key={c} value={c}>{c} Command Center</option>
+              <option key={c} value={c} className="bg-white dark:bg-slate-950">{c} Command Center</option>
             ))}
           </select>
         </div>
 
         <div>
-          <label htmlFor="radarBlood" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-red-600" />
+          <label htmlFor="radarBlood" className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-red-655" />
             <span>Highlight Blood Type</span>
           </label>
           <select
@@ -214,21 +212,21 @@ export default function RadarPage() {
               setTargetBlood(e.target.value);
               setSelectedDonor(null);
             }}
-            className="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full bg-slate-50 dark:bg-slate-805 border border-slate-250 dark:border-slate-750 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
           >
-            <option value="All">All Blood Types (Universal View)</option>
+            <option value="All" className="bg-white dark:bg-slate-950">All Blood Types (Universal View)</option>
             {BLOOD_TYPES.map((bt) => (
-              <option key={bt} value={bt}>{bt} Donors</option>
+              <option key={bt} value={bt} className="bg-white dark:bg-slate-955">{bt} Donors</option>
             ))}
           </select>
         </div>
 
-        <div className="bg-red-50/60 rounded-xl p-3.5 border border-red-100 flex items-center justify-between">
+        <div className="bg-red-50/60 dark:bg-red-955/15 rounded-xl p-3.5 border border-red-100 dark:border-red-900/30 flex items-center justify-between">
           <div>
-            <span className="text-xs font-extrabold text-red-900 block">Surveillance Radius</span>
-            <span className="text-sm font-bold text-red-700">15 Kilometers (Active)</span>
+            <span className="text-xs font-extrabold text-red-900 dark:text-red-300 block">Surveillance Radius</span>
+            <span className="text-sm font-bold text-red-700 dark:text-red-400">15 Kilometers (Active)</span>
           </div>
-          <span className="inline-flex items-center gap-1 text-xs font-bold bg-green-500 text-white px-2.5 py-1 rounded-lg shadow-sm">
+          <span className="inline-flex items-center gap-1 text-xs font-bold bg-green-650 text-white px-2.5 py-1 rounded-lg shadow-sm">
             <Sparkles className="w-3 h-3" />
             <span>Live Triage</span>
           </span>
@@ -240,26 +238,26 @@ export default function RadarPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Visual Triage Radar Grid */}
-          <div className="lg:col-span-7 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm flex flex-col items-center relative">
+          <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm flex flex-col items-center relative">
             <div className="w-full flex items-center justify-between mb-4 px-2">
-              <span className="text-xs font-bold text-gray-400 flex items-center gap-1">
-                <Navigation className="w-3.5 h-3.5 text-red-500 animate-pulse" />
+              <span className="text-xs font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                <Navigation className="w-3.5 h-3.5 text-red-505 animate-pulse" />
                 <span>GPS Radar Active</span>
               </span>
-              <span className="text-xs font-bold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
                 Center: {centerHospital}
               </span>
             </div>
 
             {/* Simulated Interactive SVG Radar Board */}
-            <div className="relative w-full max-w-[400px] aspect-square rounded-full bg-gray-900 shadow-inner overflow-hidden border-4 border-gray-800 flex items-center justify-center">
+            <div className="relative w-full max-w-[400px] aspect-square rounded-full bg-slate-950 shadow-inner overflow-hidden border-4 border-slate-200 dark:border-slate-850 flex items-center justify-center">
               
               {/* Radar Grid Distance Rings */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 400">
                 <defs>
                   <radialGradient id="radarGlow" cx="50%" cy="50%" r="50%">
                     <stop offset="0%" stopColor="#2563EB" stopOpacity="0.3" />
-                    <stop offset="80%" stopColor="#1E3A8A" stopOpacity="0.1" />
+                    <stop offset="80%" stopColor="#1E3A8A" stopOpacity="0.15" />
                     <stop offset="100%" stopColor="#0F172A" stopOpacity="0.9" />
                   </radialGradient>
                   
@@ -308,7 +306,7 @@ export default function RadarPage() {
               </div>
 
               {/* Center Hospital Cross Pin */}
-              <div className="absolute w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white shadow-lg animate-pulse z-20 border-2 border-white" title="Target Hospital Center">
+              <div className="absolute w-8 h-8 rounded-full bg-red-650 flex items-center justify-center text-white shadow-lg animate-pulse z-20 border-2 border-white" title="Target Hospital Center">
                 <Hospital className="w-4 h-4" />
               </div>
 
@@ -322,7 +320,7 @@ export default function RadarPage() {
                     type="button"
                     onClick={() => setSelectedDonor(d)}
                     className={`absolute transform -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center transition-all duration-300 focus:outline-none group ${
-                      isSelected ? "z-30 scale-125 ring-4 ring-white" : "z-10 hover:scale-110"
+                      isSelected ? "z-30 scale-125 ring-4 ring-white dark:ring-slate-900" : "z-10 hover:scale-110"
                     }`}
                     style={{ left: `${d.x}px`, top: `${d.y}px` }}
                     aria-label={`Donor ${d.name}`}
@@ -338,13 +336,13 @@ export default function RadarPage() {
                         ? "bg-yellow-500 text-black font-black" 
                         : d.bloodType.includes("-") 
                         ? "bg-blue-600 hover:bg-blue-500" 
-                        : "bg-red-600 hover:bg-red-500"
+                        : "bg-red-605 hover:bg-red-500"
                     }`}>
                       {d.bloodType}
                     </span>
 
                     {/* Quick Hover Info tooltip */}
-                    <div className="absolute bottom-8 bg-white text-gray-900 text-[10px] font-bold px-2 py-1 rounded shadow-md pointer-events-none opacity-0 group-hover:opacity-100 transition whitespace-nowrap border border-gray-200 z-40">
+                    <div className="absolute bottom-8 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-[10px] font-bold px-2 py-1 rounded shadow-md pointer-events-none opacity-0 group-hover:opacity-100 transition whitespace-nowrap border border-slate-205 dark:border-slate-700 z-40">
                       <span>{d.name} · {d.distanceKm}km</span>
                     </div>
                   </button>
@@ -352,7 +350,7 @@ export default function RadarPage() {
               })}
             </div>
 
-            <div className="w-full mt-6 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between text-xs text-gray-500 gap-2">
+            <div className="w-full mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-500 dark:text-slate-450 gap-2">
               <div className="flex items-center gap-3 font-semibold">
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-600 inline-block" /> Rh Positive</span>
                 <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-blue-600 inline-block" /> Rh Negative</span>
@@ -366,19 +364,19 @@ export default function RadarPage() {
             
             {/* Selected Donor Card or Default Overview */}
             {selectedDonor ? (
-              <div className="bg-white rounded-3xl border-2 border-red-600 shadow-md p-8 relative overflow-hidden animate-fadeIn space-y-6">
-                <div className="absolute -right-8 -top-8 w-32 h-32 bg-red-50 rounded-full opacity-80 pointer-events-none" />
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border-2 border-red-600 dark:border-red-500 shadow-md p-8 relative overflow-hidden animate-fadeIn space-y-6">
+                <div className="absolute -right-8 -top-8 w-32 h-32 bg-red-50 dark:bg-red-955/20 rounded-full opacity-80 pointer-events-none" />
 
-                <div className="flex items-start justify-between gap-4 border-b border-gray-100 pb-5">
+                <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-red-600 text-white font-extrabold flex items-center justify-center text-lg shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-red-605 text-white font-extrabold flex items-center justify-center text-lg shadow-sm">
                       {selectedDonor.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-green-600 bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                      <span className="text-xs font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-955/20 border border-green-200 dark:border-green-900/40 px-2.5 py-0.5 rounded-full inline-block mb-1">
                         ✓ Active Verified Donor
                       </span>
-                      <h3 className="text-xl font-black text-gray-900">{selectedDonor.name}</h3>
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedDonor.name}</h3>
                     </div>
                   </div>
                   <div className="scale-125 origin-top-right">
@@ -388,23 +386,23 @@ export default function RadarPage() {
 
                 {/* Logistics Travel Parameters */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase mb-1">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-150 dark:border-slate-750">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
                       <MapPin className="w-4 h-4 text-red-600" />
                       <span>Est. Travel Distance</span>
                     </div>
-                    <div className="text-2xl font-black text-gray-900 mt-0.5">
-                      {selectedDonor.distanceKm} <span className="text-sm font-bold text-gray-600">km</span>
+                    <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">
+                      {selectedDonor.distanceKm} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">km</span>
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase mb-1">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-150 dark:border-slate-750">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
                       <Clock className="w-4 h-4 text-blue-600" />
                       <span>Est. Driving Time</span>
                     </div>
-                    <div className="text-2xl font-black text-gray-900 mt-0.5">
-                      {selectedDonor.travelTimeMins} <span className="text-sm font-bold text-gray-600">mins</span>
+                    <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5">
+                      {selectedDonor.travelTimeMins} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">mins</span>
                     </div>
                   </div>
                 </div>
@@ -414,7 +412,7 @@ export default function RadarPage() {
                   <div className="flex gap-2">
                     <a
                       href={`tel:${selectedDonor.phone}`}
-                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-xs"
+                      className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-500/50"
                     >
                       <Phone className="w-4 h-4" />
                       <span>Call {selectedDonor.phone}</span>
@@ -424,7 +422,7 @@ export default function RadarPage() {
                       href={`https://wa.me/${selectedDonor.phone.startsWith("0") ? `92${selectedDonor.phone.slice(1)}` : selectedDonor.phone}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-[#25D366] hover:bg-[#20BA5A] text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-xs"
+                      className="bg-[#25D366] hover:bg-[#20BA5A] text-white font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#25D366]/50"
                     >
                       <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.459h.005c6.56 0 11.9-5.335 11.903-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -436,47 +434,47 @@ export default function RadarPage() {
                   <button
                     type="button"
                     onClick={() => handleCopy(selectedDonor.phone)}
-                    className="w-full bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200/80 font-bold py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-xs shadow-inner"
+                    className="w-full bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-750 font-bold py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-xs shadow-inner focus:outline-none focus:ring-2 focus:ring-red-500/50"
                   >
                     {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                     <span>{copied ? "Number Copied!" : `Copy Number: ${selectedDonor.phone}`}</span>
                   </button>
-                  <p className="text-center text-[10px] text-gray-400">
+                  <p className="text-center text-[10px] text-slate-400 dark:text-slate-500">
                     Natively launches cellular call, WhatsApp message, or copies to clipboard
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center text-gray-500 shadow-sm">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 text-center text-slate-500 dark:text-slate-450 shadow-sm">
                 <div className="text-5xl mb-4">🎯</div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">No Donor Selected</h3>
-                <p className="text-sm max-w-sm mx-auto leading-relaxed">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">No Donor Selected</h3>
+                <p className="text-sm max-w-sm mx-auto leading-relaxed text-slate-505 dark:text-slate-400">
                   Click on any interactive glowing pin on the radar grid to calculate emergency ETA and load instant cellular dispatch coordinates.
                 </p>
               </div>
             )}
 
             {/* Hub Readiness Analytics Summary */}
-            <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-4">
-              <h4 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-red-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm space-y-4">
+              <h4 className="text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-red-655" />
                 <span>Active Triage Readiness</span>
               </h4>
               
               <div className="space-y-3 pt-1 text-sm">
-                <div className="flex items-center justify-between pb-3 border-b border-gray-100 font-medium">
-                  <span className="text-gray-600">Active Verified Lifesavers</span>
-                  <span className="font-bold text-gray-900 bg-red-50 text-red-700 px-2.5 py-0.5 rounded-lg">{filteredDonors.length} Ready</span>
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 font-medium">
+                  <span className="text-slate-600 dark:text-slate-400">Active Verified Lifesavers</span>
+                  <span className="font-bold text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-955/20 px-2.5 py-0.5 rounded-lg">{filteredDonors.length} Ready</span>
                 </div>
-                <div className="flex items-center justify-between pb-3 border-b border-gray-100 font-medium">
-                  <span className="text-gray-600">Average ETA to {selectedCity}</span>
-                  <span className="font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-lg">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 font-medium">
+                  <span className="text-slate-600 dark:text-slate-400">Average ETA to {selectedCity}</span>
+                  <span className="font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-955/20 px-2.5 py-0.5 rounded-lg">
                     {filteredDonors.length > 0 ? Math.round(filteredDonors.reduce((acc, d) => acc + d.travelTimeMins, 0) / filteredDonors.length) : 0} Minutes
                   </span>
                 </div>
                 <div className="flex items-center justify-between font-medium">
-                  <span className="text-gray-600">Logistics Efficiency Rating</span>
-                  <span className="font-bold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-lg">99.4% Optimum</span>
+                  <span className="text-slate-600 dark:text-slate-400">Logistics Efficiency Rating</span>
+                  <span className="font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-955/20 px-2.5 py-0.5 rounded-lg">99.4% Optimum</span>
                 </div>
               </div>
             </div>
