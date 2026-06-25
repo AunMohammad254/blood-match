@@ -19,7 +19,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (isLoggedIn()) {
       const user = getUser();
-      if (user?.role === "admin") {
+      if (user?.role === "admin" || user?.role === "coordinator") {
         router.push("/admin");
       } else {
         router.push("/dashboard");
@@ -44,7 +44,7 @@ export default function LoginPage() {
       // Dispatch storage event so navbar instantly picks up user
       window.dispatchEvent(new Event("storage"));
 
-      if (loggedInUser?.role === "admin") {
+      if (loggedInUser?.role === "admin" || loggedInUser?.role === "coordinator") {
         router.push("/admin");
       } else {
         router.push("/dashboard");
@@ -121,13 +121,25 @@ export default function LoginPage() {
               <span>🏥 Recipient (Dr.)</span>
             </button>
           </div>
-          <button
-            type="button"
-            onClick={fillDemoAdmin}
-            className="w-full mt-2 bg-white dark:bg-slate-800 hover:bg-slate-950 hover:text-white dark:hover:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-transparent py-2.5 px-3 rounded-xl font-black text-[11px] shadow-xs active:scale-95 transition-all flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-red-500/50"
-          >
-            <span>🛡️ Super Admin (Verified)</span>
-          </button>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <button
+              type="button"
+              onClick={fillDemoAdmin}
+              className="bg-white dark:bg-slate-800 hover:bg-slate-950 hover:text-white dark:hover:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-transparent py-2.5 px-3 rounded-xl font-black text-[11px] shadow-xs active:scale-95 transition-all flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+            >
+              <span>🛡️ Super Admin</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail("coordinator@bloodmatch.com");
+                setPassword("secret123");
+              }}
+              className="bg-white dark:bg-slate-800 hover:bg-slate-950 hover:text-white dark:hover:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-transparent py-2.5 px-3 rounded-xl font-black text-[11px] shadow-xs active:scale-95 transition-all flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+            >
+              <span>📋 Coordinator</span>
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-8">

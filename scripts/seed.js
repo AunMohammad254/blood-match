@@ -122,6 +122,16 @@ const users = [
     role: "admin",
     isAvailable: true,
   },
+  {
+    name: "Volunteer Coordinator",
+    email: "coordinator@bloodmatch.com",
+    password: defaultPasswordHash,
+    phone: "03112233445",
+    bloodType: "A+",
+    city: "Karachi",
+    role: "coordinator",
+    isAvailable: true,
+  },
 ];
 
 async function seed() {

@@ -9,6 +9,8 @@ interface Notification {
   createdAt: string;
 }
 
+import { getToken } from "@/lib/auth";
+
 export const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -18,8 +20,15 @@ export const NotificationBell: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const fetchNotifications = async () => {
+    const token = getToken();
+    if (!token) return; // Don't fetch if not logged in
+    
     try {
-      const res = await fetch("/api/notifications");
+      const res = await fetch("/api/notifications", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications || []);
@@ -50,7 +59,12 @@ export const NotificationBell: React.FC = () => {
     if (unreadCount === 0) return;
     setLoading(true);
     try {
-      await fetch("/api/notifications", { method: "PATCH" });
+      const token = getToken();
+      if (!token) return;
+      await fetch("/api/notifications", { 
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
     } catch (err) {
       console.error("Failed to mark all as read");

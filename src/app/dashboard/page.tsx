@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { getUser, updateUser } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { getUser, updateUser, getToken } from "@/lib/auth";
 import { User, RecipientRequest } from "@/types";
 import { getRequests, toggleAvailability, cancelRequest, respondToRequest, reportRequest } from "@/lib/api";
 import { BloodTypeBadge } from "@/components/BloodTypeBadge";
@@ -29,14 +30,20 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [isLoggingDonation, setIsLoggingDonation] = useState(false);
 
+  const router = useRouter();
+
   useEffect(() => {
     const currentUser = getUser();
     if (currentUser) {
+      if (currentUser.role === "admin" || currentUser.role === "coordinator") {
+        router.push("/admin");
+        return;
+      }
       setUser(currentUser);
       setIsAvailable(currentUser.isAvailable ?? true);
       fetchData(currentUser);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
@@ -83,7 +90,9 @@ export default function DashboardPage() {
         const [openRes, acceptedRes, historyRes] = await Promise.all([
           getRequests({ status: "open" }),
           getRequests({ acceptedByMe: true }),
-          fetch("/api/donors/history").then(res => res.json())
+          fetch("/api/donors/history", {
+            headers: { Authorization: `Bearer ${getToken()}` }
+          }).then(res => res.json())
         ]);
         setRequests(openRes.data.requests || []);
         setAcceptedRequests(acceptedRes.data.requests || []);
@@ -172,7 +181,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch("/api/donors/history", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}` 
+        },
         body: JSON.stringify({
           hospital: "Local Hospital", // Simplified for MVP
           city: user.city,

@@ -371,7 +371,7 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSendOtp}
                   disabled={isSendingOtp}
-                  className="text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 dark:text-amber-300 px-3 py-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50 flex flex-shrink-0 items-center gap-1"
+                  className="text-[11px] sm:text-xs font-bold whitespace-nowrap bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 dark:text-amber-300 px-2 sm:px-3 py-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50 flex flex-shrink-0 items-center gap-1"
                 >
                   {isSendingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : "Verify Now"}
                 </button>
