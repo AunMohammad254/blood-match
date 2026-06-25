@@ -100,17 +100,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-slate-900 border-r border-slate-850 z-40 flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-850 z-40 flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
         {/* Brand */}
-        <div className="px-5 py-5 border-b border-slate-800 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-slate-950 flex items-center justify-center border border-slate-700 overflow-hidden flex-shrink-0">
+        <div className="px-5 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center border border-slate-200 dark:border-slate-700 overflow-hidden flex-shrink-0">
             <Image src="/logo.png" alt="Logo" width={36} height={36} className="w-full h-full object-cover" />
           </div>
           <div>
-            <p className="text-white font-black text-sm tracking-tight leading-none">BloodMatch</p>
+            <p className="text-slate-900 dark:text-white font-black text-sm tracking-tight leading-none">BloodMatch</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <ShieldAlert className="w-3 h-3 text-red-500" />
               <span className="text-[10px] font-extrabold text-red-500 uppercase tracking-widest">Admin Panel</span>
@@ -129,11 +129,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
                   active
-                    ? "bg-red-600/20 text-red-400 border border-red-500/30"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    ? "bg-red-50 dark:bg-red-600/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5"
                 }`}
               >
-                <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-red-400" : ""}`} />
+                <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-red-600 dark:text-red-400" : ""}`} />
                 {item.label}
               </Link>
             );
@@ -141,13 +141,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* User info & logout */}
-        <div className="p-4 border-t border-slate-850">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-850">
           <div className="flex items-center gap-3 mb-3 px-1">
             <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center flex-shrink-0">
               <ShieldAlert className="w-4 h-4 text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-white text-xs font-black truncate">{user?.name}</p>
+              <p className="text-slate-900 dark:text-white text-xs font-black truncate">{user?.name}</p>
               <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
                 {user?.role === "admin" ? "Super Admin" : "Coordinator"}
               </p>
@@ -155,7 +155,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>

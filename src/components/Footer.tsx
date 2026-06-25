@@ -1,9 +1,18 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Heart, ShieldCheck, Sparkles, PhoneCall } from "lucide-react";
 
 export const Footer: React.FC = () => {
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <footer className="bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 py-16 mt-auto">
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-10 items-center justify-between">
