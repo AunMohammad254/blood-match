@@ -23,7 +23,7 @@ const UserSchema = new Schema<IUser>(
     phone: { type: String, required: true },
     bloodType: { type: String, required: true, enum: BLOOD_TYPES },
     city: { type: String, required: true, trim: true },
-    role: { type: String, required: true, enum: ["donor", "recipient", "admin"], default: "donor" },
+    role: { type: String, required: true, enum: ROLES, default: "donor" },
     isAvailable: { type: Boolean, default: true },
     lastDonatedAt: { type: Date },
   },
@@ -33,6 +33,8 @@ const UserSchema = new Schema<IUser>(
 // Indexes for fast filtering
 UserSchema.index({ bloodType: 1, city: 1 });
 UserSchema.index({ role: 1, isAvailable: 1 });
+UserSchema.index({ city: 1, bloodType: 1, isAvailable: 1 });
+UserSchema.index({ isAvailable: 1, lastDonatedAt: -1 });
 
 import { UserMemoryModel } from "@/lib/db/memoryStore";
 

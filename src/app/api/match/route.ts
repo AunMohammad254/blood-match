@@ -6,6 +6,7 @@ import { User } from "@/lib/models/User";
 import { getCompatibleDonorTypes } from "@/lib/compatibility";
 import { BloodType, BLOOD_TYPES } from "@/lib/constants";
 import { FilterQuery } from "mongoose";
+import { verifyAuth } from "@/lib/middleware/auth";
 
 export async function GET(req: Request) {
   try {
@@ -24,10 +25,16 @@ export async function GET(req: Request) {
 
     const compatibleTypes = getCompatibleDonorTypes(bloodType as BloodType);
 
+    const cooldownDate = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000);
     const query: FilterQuery<any> = {
       role: "donor",
       isAvailable: true,
-      bloodType: { $in: compatibleTypes }
+      bloodType: { $in: compatibleTypes },
+      $or: [
+        { lastDonatedAt: { $exists: false } },
+        { lastDonatedAt: null },
+        { lastDonatedAt: { $lt: cooldownDate } }
+      ]
     };
 
     if (city && city.trim()) {
@@ -35,8 +42,15 @@ export async function GET(req: Request) {
       query.city = city.trim();
     }
 
+    const user = verifyAuth(req);
+    const isAdminOrCoordinator = user && (user.role === "admin" || user.role === "coordinator");
+
+    const selectFields = isAdminOrCoordinator
+      ? "name bloodType city phone isAvailable lastDonatedAt createdAt"
+      : "name bloodType city isAvailable lastDonatedAt createdAt";
+
     const donors = await User.find(query)
-      .select("name bloodType city phone isAvailable lastDonatedAt createdAt")
+      .select(selectFields)
       .sort({ createdAt: 1 })
       .lean();
 

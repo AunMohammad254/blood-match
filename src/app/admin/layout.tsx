@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
 
         const data = await res.json();
-        if (data.user.role !== "admin") {
+        if (data.user.role !== "admin" && data.user.role !== "coordinator") {
           router.push("/dashboard");
           return;
         }
@@ -148,7 +148,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <div className="min-w-0">
               <p className="text-white text-xs font-black truncate">{user?.name}</p>
-              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Super Admin</p>
+              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">
+                {user?.role === "admin" ? "Super Admin" : "Coordinator"}
+              </p>
             </div>
           </div>
           <button

@@ -6,6 +6,7 @@ import { BloodRequest } from "@/lib/models/BloodRequest";
 import { requireAdmin } from "@/lib/middleware/auth";
 import { z } from "zod";
 import { BLOOD_TYPES } from "@/lib/constants";
+import { invalidateCache } from "@/lib/cache";
 
 const UpdateRequestSchema = z.object({
   patientName: z.string().min(2, "Patient name must be at least 2 characters.").optional(),
@@ -17,6 +18,7 @@ const UpdateRequestSchema = z.object({
   contactPhone: z.string().min(10, "Contact phone must be at least 10 characters.").optional(),
   status: z.enum(["open", "accepted", "rejected", "fulfilled", "cancelled"]).optional(),
   action: z.enum(["accept", "reject"]).optional(),
+  isVerified: z.boolean().optional(),
 });
 
 // PATCH — Update request details (urgency, status, patient information)
@@ -48,10 +50,17 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (data.urgency) updateData.urgency = data.urgency;
     if (data.contactPhone) updateData.contactPhone = data.contactPhone.trim();
     if (data.status) updateData.status = data.status;
+    if (typeof data.isVerified === "boolean") updateData.isVerified = data.isVerified;
 
-    // Support action field ("accept" / "reject") for backwards compatibility
+    // Support action field ("accept" / "reject") for verification workflow
     if (data.action) {
-      updateData.status = data.action === "accept" ? "accepted" : "rejected";
+      if (data.action === "accept") {
+        updateData.isVerified = true;
+        updateData.status = "open"; // Keep it open for donors once verified
+      } else {
+        updateData.isVerified = false;
+        updateData.status = "rejected";
+      }
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -67,6 +76,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!updated) {
       return NextResponse.json({ error: "Request not found." }, { status: 404 });
     }
+
+    invalidateCache("requests");
 
     return NextResponse.json({
       message: "Request updated successfully.",
@@ -94,6 +105,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     if (!deleted || deleted.deletedCount === 0) {
       return NextResponse.json({ error: "Request not found." }, { status: 404 });
     }
+
+    invalidateCache("requests");
 
     return NextResponse.json({ message: "Request deleted successfully." });
   } catch (err) {

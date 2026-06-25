@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { BloodRequest } from "@/lib/models/BloodRequest";
 import { verifyAuth } from "@/lib/middleware/auth";
+import { invalidateCache } from "@/lib/cache";
 
 export async function PATCH(
   req: Request,
@@ -38,6 +39,8 @@ export async function PATCH(
 
     bloodRequest.status = "cancelled";
     await bloodRequest.save();
+
+    invalidateCache("requests");
 
     return NextResponse.json({ message: "Request cancelled." }, { status: 200 });
   } catch (err) {

@@ -8,6 +8,7 @@ import { getUser, logout } from "@/lib/auth";
 import { User } from "@/types";
 import { Menu, X, User as UserIcon, LayoutDashboard, LogOut, Radar as RadarIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export const Navbar: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -63,6 +64,7 @@ export const Navbar: React.FC = () => {
 
           {user ? (
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <Link
                 href="/dashboard/profile"
                 className="flex items-center gap-2 text-xs text-red-950 dark:text-rose-200 bg-gradient-to-r from-red-50 via-rose-50 to-white dark:from-slate-800 dark:to-slate-900 border border-red-200/80 dark:border-slate-700/80 px-4 py-2 rounded-2xl shadow-xs font-bold hover:border-red-300 dark:hover:border-slate-600 hover:shadow-sm transition-all group"
@@ -145,6 +147,10 @@ export const Navbar: React.FC = () => {
 
           {user ? (
             <div className="space-y-4 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-gray-700 dark:text-slate-300">Notifications</span>
+                <NotificationBell />
+              </div>
               <Link
                 href="/dashboard/profile"
                 onClick={() => setMobileMenuOpen(false)}

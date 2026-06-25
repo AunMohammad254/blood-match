@@ -12,6 +12,11 @@ export interface IBloodRequest extends Document {
   requestedBy: mongoose.Types.ObjectId;
   status: "open" | "fulfilled" | "cancelled";
   matchedDonor?: mongoose.Types.ObjectId;
+  isVerified: boolean;
+  expiresAt?: Date;
+  declinedBy: mongoose.Types.ObjectId[];
+  reports: number;
+  reportedBy: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +33,11 @@ const BloodRequestSchema = new Schema<IBloodRequest>(
     requestedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     status: { type: String, enum: ["open", "accepted", "rejected", "fulfilled", "cancelled"], default: "open" },
     matchedDonor: { type: Schema.Types.ObjectId, ref: "User" },
+    isVerified: { type: Boolean, required: true, default: false },
+    expiresAt: { type: Date },
+    declinedBy: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
+    reports: { type: Number, default: 0 },
+    reportedBy: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
   },
   { timestamps: true }
 );
@@ -36,6 +46,7 @@ const BloodRequestSchema = new Schema<IBloodRequest>(
 BloodRequestSchema.index({ status: 1, createdAt: -1 });
 BloodRequestSchema.index({ bloodType: 1, city: 1, status: 1 });
 BloodRequestSchema.index({ requestedBy: 1, status: 1 });
+BloodRequestSchema.index({ city: 1, urgency: -1, createdAt: -1 });
 
 import { BloodRequestMemoryModel } from "@/lib/db/memoryStore";
 

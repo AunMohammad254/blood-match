@@ -21,6 +21,8 @@ interface AdminRequest {
   urgency: "normal" | "urgent" | "critical";
   contactPhone: string;
   status: string;
+  isVerified?: boolean;
+  reports?: number;
   requestedBy: { _id: string; name: string; city: string; email: string } | string;
   createdAt: string;
 }
@@ -191,7 +193,7 @@ export default function AdminRequestsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      toast.success(`Request ${action === "accept" ? "accepted" : "rejected"} successfully.`);
+      toast.success(`Request ${action === "accept" ? "verified" : "rejected"} successfully.`);
       fetchRequests();
       router.refresh();
     } catch (e: any) {
@@ -626,6 +628,7 @@ export default function AdminRequestsPage() {
                   <th className="text-left text-[10px] font-extrabold text-slate-455 dark:text-slate-500 uppercase tracking-wider px-4 py-3.5">Urgency</th>
                   <th className="text-left text-[10px] font-extrabold text-slate-455 dark:text-slate-500 uppercase tracking-wider px-4 py-3.5">Status</th>
                   <th className="text-left text-[10px] font-extrabold text-slate-455 dark:text-slate-500 uppercase tracking-wider px-4 py-3.5">Posted By</th>
+                  <th className="text-left text-[10px] font-extrabold text-slate-455 dark:text-slate-500 uppercase tracking-wider px-4 py-3.5">Flags</th>
                   <th className="text-left text-[10px] font-extrabold text-slate-455 dark:text-slate-500 uppercase tracking-wider px-4 py-3.5">Date</th>
                   <th className="text-right text-[10px] font-extrabold text-slate-455 dark:text-slate-500 uppercase tracking-wider px-4 py-3.5">Actions</th>
                 </tr>
@@ -638,7 +641,9 @@ export default function AdminRequestsPage() {
                     <tr key={req._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="px-4 py-3.5">
                         <p className="font-black text-slate-900 dark:text-white text-xs">{req.patientName}</p>
-                        <p className="text-slate-400 dark:text-slate-500 text-[10px] mt-0.5 font-mono">{req._id.slice(-8)}</p>
+                        <p className="text-slate-400 dark:text-slate-500 text-[10px] mt-0.5 font-mono">
+                          {req._id.slice(-8)} · {req.isVerified ? "✅ Verified" : "⏳ Unverified"}
+                        </p>
                       </td>
                       <td className="px-4 py-3.5">
                         <span className="inline-block bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/40 text-xs font-black px-2 py-0.5 rounded-lg">
@@ -672,18 +677,28 @@ export default function AdminRequestsPage() {
                         <p className="text-slate-450 dark:text-slate-500 text-[10px] mt-0.5">{postedBy.city}</p>
                       </td>
                       <td className="px-4 py-3.5">
+                        {req.reports && req.reports > 0 ? (
+                          <span className="inline-flex items-center gap-1 bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400 border border-red-200 dark:border-red-900/40 text-[10px] font-black px-2 py-0.5 rounded-lg">
+                            <AlertTriangle className="w-3 h-3" />
+                            {req.reports}
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600 text-xs">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5">
                         <p className="text-slate-500 dark:text-slate-500 text-[10px] font-mono">
                           {new Date(req.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
                         </p>
                       </td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center justify-end gap-1.5">
-                          {req.status === "open" && (
+                          {req.status === "open" && !req.isVerified && (
                             <>
                               <button
                                 onClick={() => handleAction(req._id, "accept")}
                                 disabled={!!isActioning}
-                                title="Accept Request"
+                                title="Verify Request"
                                 className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center transition-all disabled:opacity-40 border border-emerald-200 dark:border-emerald-900/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                               >
                                 {isActioning === req._id + "accept" ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}

@@ -21,7 +21,7 @@ export interface Donor {
   role: Role;
   bloodType: BloodType;
   city: string;
-  phone: string;
+  phone?: string; // Conditionally included by API — only for admin/coordinator roles
   isAvailable: boolean;
   lastDonatedAt?: string;
   createdAt?: string;

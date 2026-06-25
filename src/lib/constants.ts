@@ -9,7 +9,7 @@ export const CITIES = [
 export const URGENCY_LEVELS = ["normal", "urgent", "critical"] as const;
 export type UrgencyLevel = typeof URGENCY_LEVELS[number];
 
-export const ROLES = ["donor", "recipient", "admin"] as const;
+export const ROLES = ["donor", "recipient", "admin", "coordinator"] as const;
 export type Role = typeof ROLES[number];
 
 export const REQUEST_STATUS = ["open", "accepted", "rejected", "fulfilled", "cancelled"] as const;

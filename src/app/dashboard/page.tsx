@@ -4,13 +4,14 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { getUser, updateUser } from "@/lib/auth";
 import { User, RecipientRequest } from "@/types";
-import { getRequests, toggleAvailability, cancelRequest } from "@/lib/api";
+import { getRequests, toggleAvailability, cancelRequest, respondToRequest, reportRequest } from "@/lib/api";
 import { BloodTypeBadge } from "@/components/BloodTypeBadge";
 import { RequestCard } from "@/components/RequestCard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { RequestCardSkeleton } from "@/components/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
 import { PlusCircle, Search, AlertCircle, RefreshCw, Sparkles, Activity, ShieldCheck, HeartHandshake, MapPin } from "lucide-react";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -22,6 +23,7 @@ export default function DashboardPage() {
 
   // Shared requests state
   const [requests, setRequests] = useState<RecipientRequest[]>([]);
+  const [acceptedRequests, setAcceptedRequests] = useState<RecipientRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -34,15 +36,54 @@ export default function DashboardPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+
+    const eventSource = new EventSource("/api/live");
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "new_requests" && Array.isArray(data.requests)) {
+          data.requests.forEach((req: any) => {
+            toast.info(`New Emergency: ${req.bloodType} requested at ${req.hospital}, ${req.city}!`, {
+              duration: 8000,
+              action: {
+                label: "View Feed",
+                onClick: () => {
+                  fetchData(user);
+                }
+              }
+            });
+          });
+          fetchData(user);
+        }
+      } catch (err) {
+        console.error("Failed to parse SSE event data:", err);
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("SSE connection error:", err);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [user]);
+
   const fetchData = async (currentUser: User) => {
     setIsLoading(true);
     setError("");
 
     try {
       if (currentUser.role === "donor") {
-        // Fetch open requests
-        const res = await getRequests({ status: "open" });
-        setRequests(res.data.requests || []);
+        const [openRes, acceptedRes] = await Promise.all([
+          getRequests({ status: "open" }),
+          getRequests({ acceptedByMe: true })
+        ]);
+        setRequests(openRes.data.requests || []);
+        setAcceptedRequests(acceptedRes.data.requests || []);
       } else {
         // Fetch recipient's own requests
         const res = await getRequests({ mine: true });
@@ -55,21 +96,59 @@ export default function DashboardPage() {
     }
   };
 
+  const handleAcceptRequest = async (id: string) => {
+    try {
+      await respondToRequest(id, "accept");
+      toast.success("Request accepted! You can now contact the family.");
+      if (user) {
+        await fetchData(user);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to accept request.");
+    }
+  };
+
+  const handleDeclineRequest = async (id: string) => {
+    try {
+      await respondToRequest(id, "decline");
+      setRequests(requests.filter((r) => r._id !== id));
+      toast.success("Request declined and hidden.");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to decline request.");
+    }
+  };
+
+  const handleReportRequest = async (id: string) => {
+    try {
+      await reportRequest(id);
+      setRequests(requests.filter((r) => r._id !== id));
+      toast.success("Request reported and hidden.");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to report request.");
+    }
+  };
+
   const handleToggleAvailability = async () => {
     if (!user) return;
     setUpdatingAvailability(true);
     setStatusMessage("");
 
+    const previousState = isAvailable;
     const nextState = !isAvailable;
+
+    // Optimistic Update
+    setIsAvailable(nextState);
+    updateUser({ isAvailable: nextState });
+
     try {
       await toggleAvailability(nextState);
-      setIsAvailable(nextState);
-      updateUser({ isAvailable: nextState });
-
       setStatusMessage("Status updated successfully.");
       setTimeout(() => setStatusMessage(""), 3500);
     } catch (err: any) {
-      alert("Failed to update availability status.");
+      // Rollback on failure
+      setIsAvailable(previousState);
+      updateUser({ isAvailable: previousState });
+      toast.error("Failed to update availability status. Please try again.");
     } finally {
       setUpdatingAvailability(false);
     }
@@ -179,6 +258,39 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
+            {/* Tactical Active Commitments */}
+            {acceptedRequests.length > 0 && (
+              <div className="space-y-6 mb-12">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-gray-200/80 dark:border-slate-800">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-8 bg-emerald-600 rounded-full animate-pulse" />
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">Your Active Commitments</h2>
+                      <span className="text-xs font-extrabold text-gray-500 dark:text-slate-400 uppercase tracking-wider block mt-0.5">Emergency requests you have committed to fulfill</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {acceptedRequests.map((req) => (
+                    <RequestCard
+                      key={req._id}
+                      id={req._id}
+                      patientName={req.patientName}
+                      bloodType={req.bloodType}
+                      units={req.units}
+                      hospital={req.hospital}
+                      city={req.city}
+                      urgency={req.urgency}
+                      status={req.status}
+                      contactPhone={req.contactPhone}
+                      createdAt={req.createdAt}
+                      currentUserRole={user.role}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Tactical Open Requests Feed */}
             <div>
@@ -208,7 +320,7 @@ export default function DashboardPage() {
               {error && (
                 <div className="p-5 bg-red-50 dark:bg-red-950/20 rounded-2xl border border-red-200 dark:border-red-900/35 flex items-center justify-between text-xs font-black text-red-800 dark:text-red-400 shadow-sm animate-fadeIn">
                   <div className="flex items-center gap-2.5">
-                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                    <AlertCircle className="w-5 h-5 text-red-650 shrink-0" />
                     <span>{error}</span>
                   </div>
                   <button
@@ -245,12 +357,15 @@ export default function DashboardPage() {
                       status={req.status}
                       contactPhone={req.contactPhone}
                       createdAt={req.createdAt}
+                      currentUserRole={user.role}
+                      onAccept={handleAcceptRequest}
+                      onDecline={handleDeclineRequest}
+                      onReport={handleReportRequest}
                     />
                   ))}
                 </div>
               )}
             </div>
-
           </div>
         )}
 

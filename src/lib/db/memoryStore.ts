@@ -8,7 +8,7 @@ export interface MockUser {
   phone: string;
   bloodType: string;
   city: string;
-  role: "donor" | "recipient" | "admin";
+  role: "donor" | "recipient" | "admin" | "coordinator";
   isAvailable: boolean;
   lastDonatedAt?: string;
   createdAt: string;
@@ -26,6 +26,12 @@ export interface MockBloodRequest {
   contactPhone: string;
   requestedBy: any;
   status: "open" | "accepted" | "rejected" | "fulfilled" | "cancelled";
+  isVerified?: boolean;
+  expiresAt?: string;
+  declinedBy?: string[];
+  reports?: number;
+  reportedBy?: string[];
+  matchedDonor?: any;
   createdAt: string;
   updatedAt: string;
   save?: () => Promise<void>;
@@ -154,6 +160,19 @@ export const initialUsers: MockUser[] = [
     createdAt: "2024-01-01T00:00:00.000Z",
     updatedAt: "2024-01-01T00:00:00.000Z",
   },
+  {
+    _id: "usr_coordinator_1",
+    name: "Volunteer Coordinator",
+    email: "coordinator@bloodmatch.com",
+    password: defaultPasswordHash, // secret123
+    phone: "03112233445",
+    bloodType: "A+",
+    city: "Karachi",
+    role: "coordinator",
+    isAvailable: true,
+    createdAt: "2024-01-01T00:00:00.000Z",
+    updatedAt: "2024-01-01T00:00:00.000Z",
+  },
 ];
 
 export const initialRequests: MockBloodRequest[] = [
@@ -168,6 +187,9 @@ export const initialRequests: MockBloodRequest[] = [
     contactPhone: "03111234567",
     requestedBy: "usr_recipient_1",
     status: "open",
+    isVerified: true,
+    declinedBy: [],
+    expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
     updatedAt: new Date().toISOString(),
   },
@@ -182,6 +204,9 @@ export const initialRequests: MockBloodRequest[] = [
     contactPhone: "03221234567",
     requestedBy: "usr_recipient_1",
     status: "open",
+    isVerified: true,
+    declinedBy: [],
+    expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // 2 hours ago
     updatedAt: new Date().toISOString(),
   },
@@ -196,6 +221,9 @@ export const initialRequests: MockBloodRequest[] = [
     contactPhone: "03331234567",
     requestedBy: "usr_recipient_1",
     status: "open",
+    isVerified: true,
+    declinedBy: [],
+    expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
     updatedAt: new Date().toISOString(),
   },
@@ -210,6 +238,9 @@ export const initialRequests: MockBloodRequest[] = [
     contactPhone: "03005554444",
     requestedBy: "usr_donor_1",
     status: "open",
+    isVerified: true,
+    declinedBy: [],
+    expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
     updatedAt: new Date().toISOString(),
   },
@@ -252,6 +283,18 @@ class MockQuery<T> {
     }
     return this;
   }
+  skip(offset: number) {
+    if (this.isArray && Array.isArray(this.data)) {
+      this.data = (this.data as any).slice(offset);
+    }
+    return this;
+  }
+  limit(limitSize: number) {
+    if (this.isArray && Array.isArray(this.data)) {
+      this.data = (this.data as any).slice(0, limitSize);
+    }
+    return this;
+  }
   then(onfulfilled?: ((value: T | null) => any) | null, onrejected?: ((reason: any) => any) | null): Promise<any> {
     return Promise.resolve(this.data).then(onfulfilled, onrejected);
   }
@@ -288,6 +331,27 @@ export const UserMemoryModel = {
       } else {
         matches = matches.filter((u) => u.city.toLowerCase() === query.city.toLowerCase());
       }
+    }
+    if (query.$or) {
+      matches = matches.filter((u) => {
+        return query.$or.some((subQuery: any) => {
+          return Object.entries(subQuery).every(([key, val]: [string, any]) => {
+            if (key === "lastDonatedAt") {
+              if (val === null || val === undefined) {
+                return u.lastDonatedAt === null || u.lastDonatedAt === undefined;
+              }
+              if (val.$exists === false) {
+                return u.lastDonatedAt === null || u.lastDonatedAt === undefined;
+              }
+              if (val.$lt) {
+                if (!u.lastDonatedAt) return false;
+                return new Date(u.lastDonatedAt) < new Date(val.$lt);
+              }
+            }
+            return (u as any)[key] === val;
+          });
+        });
+      });
     }
     return new MockQuery([...matches], true);
   },
@@ -357,6 +421,12 @@ export const BloodRequestMemoryModel = {
     if (query.requestedBy) {
       matches = matches.filter((r) => r.requestedBy === query.requestedBy);
     }
+    if (query.matchedDonor) {
+      matches = matches.filter((r) => r.matchedDonor === query.matchedDonor);
+    }
+    if (query.isVerified !== undefined) {
+      matches = matches.filter((r) => r.isVerified === query.isVerified);
+    }
     if (query.city) {
       if (query.city.$regex) {
         const reg = new RegExp(query.city.$regex, query.city.$options || "i");
@@ -371,6 +441,39 @@ export const BloodRequestMemoryModel = {
     if (query.urgency) {
       matches = matches.filter((r) => r.urgency === query.urgency);
     }
+    if (query.declinedBy) {
+      if (query.declinedBy.$ne) {
+        matches = matches.filter((r) => !r.declinedBy || !r.declinedBy.includes(query.declinedBy.$ne));
+      }
+    }
+
+    if (query.$or) {
+      matches = matches.filter((r) => {
+        return query.$or.some((subQuery: any) => {
+          return Object.entries(subQuery).every(([key, val]: [string, any]) => {
+            if (key === "expiresAt") {
+              if (val === null || val === undefined) {
+                return r.expiresAt === null || r.expiresAt === undefined;
+              }
+              if (val.$gt) {
+                if (!r.expiresAt) return true;
+                return new Date(r.expiresAt) > new Date(val.$gt);
+              }
+            }
+            return (r as any)[key] === val;
+          });
+        });
+      });
+    }
+
+    // Auto-filter expired requests for open queries
+    if (query.status === "open" && !query.$or && !query.mine) {
+      matches = matches.filter((r) => {
+        if (!r.expiresAt) return true;
+        return new Date(r.expiresAt) > new Date();
+      });
+    }
+
     return new MockQuery([...matches], true);
   },
   create: async (data: any) => {
@@ -378,6 +481,9 @@ export const BloodRequestMemoryModel = {
       ...data,
       _id: "req_" + Date.now(),
       status: "open",
+      isVerified: data.isVerified ?? false,
+      declinedBy: [],
+      expiresAt: data.expiresAt || new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -392,12 +498,17 @@ export const BloodRequestMemoryModel = {
     const mutableItem = {
       ...item,
       requestedBy: { toString: () => item.requestedBy },
+      matchedDonor: item.matchedDonor ? { toString: () => item.matchedDonor } : undefined,
+      declinedBy: item.declinedBy || [],
       save: async () => {
         const idx = memoryDatabase.bloodRequests.findIndex((r) => r._id === id);
         if (idx !== -1) {
           memoryDatabase.bloodRequests[idx] = {
             ...memoryDatabase.bloodRequests[idx],
             status: mutableItem.status,
+            isVerified: mutableItem.isVerified ?? memoryDatabase.bloodRequests[idx].isVerified,
+            declinedBy: mutableItem.declinedBy || memoryDatabase.bloodRequests[idx].declinedBy,
+            matchedDonor: mutableItem.matchedDonor ? (mutableItem.matchedDonor.toString ? mutableItem.matchedDonor.toString() : mutableItem.matchedDonor) : memoryDatabase.bloodRequests[idx].matchedDonor,
             updatedAt: new Date().toISOString(),
           };
         }
@@ -410,7 +521,13 @@ export const BloodRequestMemoryModel = {
     if (idx === -1) return null;
     const current = memoryDatabase.bloodRequests[idx];
     const setData = update.$set || update;
-    const updated = { ...current, ...setData, updatedAt: new Date().toISOString() };
+    let updated = { ...current, ...setData, updatedAt: new Date().toISOString() };
+    
+    if (update.$push && update.$push.declinedBy) {
+      const existingDeclined = current.declinedBy || [];
+      updated.declinedBy = [...existingDeclined, update.$push.declinedBy];
+    }
+    
     memoryDatabase.bloodRequests[idx] = updated;
     return options?.new ? updated : current;
   },

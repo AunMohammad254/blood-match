@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 export interface DecodedToken {
   userId: string;
-  role: "donor" | "recipient" | "admin";
+  role: "donor" | "recipient" | "admin" | "coordinator";
   bloodType: string;
 }
 
@@ -20,6 +20,6 @@ export function verifyAuth(req: Request): DecodedToken | null {
 
 export function requireAdmin(req: Request): DecodedToken | null {
   const decoded = verifyAuth(req);
-  if (!decoded || decoded.role !== "admin") return null;
+  if (!decoded || (decoded.role !== "admin" && decoded.role !== "coordinator")) return null;
   return decoded;
 }

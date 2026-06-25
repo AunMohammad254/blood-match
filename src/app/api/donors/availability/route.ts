@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import { verifyAuth } from "@/lib/middleware/auth";
+import { invalidateCache } from "@/lib/cache";
 
 export async function PATCH(req: Request) {
   try {
@@ -32,6 +33,8 @@ export async function PATCH(req: Request) {
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
+
+    invalidateCache("donors");
 
     return NextResponse.json(
       {

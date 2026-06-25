@@ -6,6 +6,7 @@ import { BloodRequest } from "@/lib/models/BloodRequest";
 import { requireAdmin } from "@/lib/middleware/auth";
 import { z } from "zod";
 import { BLOOD_TYPES, URGENCY_LEVELS } from "@/lib/constants";
+import { invalidateCache } from "@/lib/cache";
 
 const CreateRequestSchema = z.object({
   patientName: z.string().min(2, "Patient name must be at least 2 characters."),
@@ -17,6 +18,7 @@ const CreateRequestSchema = z.object({
   contactPhone: z.string().min(10, "Contact phone must be at least 10 characters."),
   requestedBy: z.string().min(1, "RequestedBy user ID is required."),
   status: z.enum(["open", "accepted", "rejected", "fulfilled", "cancelled"]).optional(),
+  isVerified: z.boolean().optional(),
 });
 
 // GET — List blood requests
@@ -87,7 +89,11 @@ export async function POST(req: Request) {
     const newRequest = await BloodRequest.create({
       ...result.data,
       status: result.data.status || "open",
+      isVerified: result.data.isVerified ?? true,
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000)
     });
+
+    invalidateCache("requests");
 
     return NextResponse.json({ message: "Blood request created successfully.", request: newRequest }, { status: 201 });
   } catch (err) {

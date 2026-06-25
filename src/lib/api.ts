@@ -36,10 +36,12 @@ export const getDonors = (params?: { bloodType?: string; city?: string }) => api
 export const toggleAvailability = (isAvailable: boolean) => api.patch("/donors/availability", { isAvailable });
 
 // Requests
-export const getRequests = (params?: { city?: string; bloodType?: string; status?: string; mine?: boolean }) => 
+export const getRequests = (params?: { city?: string; bloodType?: string; status?: string; mine?: boolean; acceptedByMe?: boolean }) => 
   api.get("/requests", { params });
 export const createRequest = (data: any) => api.post("/requests", data);
 export const cancelRequest = (id: string) => api.patch(`/requests/${id}/cancel`);
+export const respondToRequest = (id: string, action: "accept" | "decline") => api.patch(`/requests/${id}/respond`, { action });
+export const reportRequest = (id: string) => api.post(`/requests/${id}/report`);
 
 // Match
 export const matchDonors = (bloodType: BloodType, city?: string) =>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import { verifyAuth } from "@/lib/middleware/auth";
+import { invalidateCache } from "@/lib/cache";
 
 export async function GET(req: Request) {
   try {
@@ -75,6 +76,8 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
+    invalidateCache("donors");
+
     return NextResponse.json(
       {
         message: "Profile updated successfully.",
@@ -114,6 +117,8 @@ export async function DELETE(req: Request) {
     if (!deletedUser) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
+
+    invalidateCache("donors");
 
     return NextResponse.json({ message: "Account deleted successfully." }, { status: 200 });
   } catch (err) {
