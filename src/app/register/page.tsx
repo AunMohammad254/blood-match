@@ -25,6 +25,9 @@ function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  const [location, setLocation] = useState<{ type: "Point", coordinates: [number, number] } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn()) {
@@ -64,6 +67,30 @@ function RegisterForm() {
     return Object.keys(errors).length === 0;
   };
 
+  const captureLocation = () => {
+    setIsLocating(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            type: "Point",
+            coordinates: [position.coords.longitude, position.coords.latitude]
+          });
+          setIsLocating(false);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setFormError("Could not fetch location. You can continue without it.");
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    } else {
+      setFormError("Geolocation is not supported by your browser.");
+      setIsLocating(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
@@ -80,6 +107,7 @@ function RegisterForm() {
         bloodType,
         city,
         role,
+        ...(location && { location })
       });
 
       setIsSuccess(true);
@@ -308,6 +336,28 @@ function RegisterForm() {
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={captureLocation}
+            disabled={isLocating || !!location}
+            className={`w-full py-3.5 px-4 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 border-2 ${
+              location
+                ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/40"
+                : "bg-slate-50 text-slate-700 border-slate-200/80 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700/80 dark:hover:bg-slate-750"
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            <span>
+              {location
+                ? "Location Captured"
+                : isLocating
+                ? "Detecting Location..."
+                : "Capture Exact Location (Optional)"}
+            </span>
+          </button>
         </div>
 
         {formError && (

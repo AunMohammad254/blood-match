@@ -14,6 +14,9 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const bloodType = searchParams.get("bloodType");
     const city = searchParams.get("city");
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+    const maxDistance = searchParams.get("maxDistance") || "10000"; // Default 10km
 
     if (!bloodType) {
       return NextResponse.json({ error: "bloodType is required." }, { status: 400 });
@@ -38,8 +41,25 @@ export async function GET(req: Request) {
     };
 
     if (city && city.trim()) {
-      // Optimized: Use exact matching for indexed fields instead of regex
       query.city = city.trim();
+    }
+
+    let isProximitySearch = false;
+    if (lat && lng) {
+      const latitude = parseFloat(lat);
+      const longitude = parseFloat(lng);
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        query.location = {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: [longitude, latitude] // GeoJSON format: [lng, lat]
+            },
+            $maxDistance: parseInt(maxDistance, 10)
+          }
+        };
+        isProximitySearch = true;
+      }
     }
 
     const user = verifyAuth(req);
@@ -49,10 +69,15 @@ export async function GET(req: Request) {
       ? "name bloodType city phone isAvailable lastDonatedAt createdAt"
       : "name bloodType city isAvailable lastDonatedAt createdAt";
 
-    const donors = await User.find(query)
-      .select(selectFields)
-      .sort({ createdAt: 1 })
-      .lean();
+    let dbQuery = User.find(query).select(selectFields);
+    
+    // If using $near, MongoDB automatically sorts by proximity. 
+    // Otherwise, fallback to createdAt.
+    if (!isProximitySearch) {
+      dbQuery = dbQuery.sort({ createdAt: 1 });
+    }
+
+    const donors = await dbQuery.lean();
 
     return NextResponse.json(
       {

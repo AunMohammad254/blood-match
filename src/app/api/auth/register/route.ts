@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     await connectDB();
     const body = await req.json();
-    const { name, email, password, phone, bloodType, city, role } = body;
+    const { name, email, password, phone, bloodType, city, role, location } = body;
 
     if (!name || !email || !password || !phone || !bloodType || !city || !role) {
       return NextResponse.json({ error: "All fields are required." }, { status: 400 });
@@ -64,7 +64,8 @@ export async function POST(req: Request) {
       phone: phone.trim(),
       bloodType,
       city: city.trim(),
-      role
+      role,
+      location
     });
 
     return NextResponse.json(

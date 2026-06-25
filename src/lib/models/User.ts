@@ -11,6 +11,10 @@ export interface IUser extends Document {
   role: "donor" | "recipient";
   isAvailable: boolean;
   lastDonatedAt?: Date;
+  location?: {
+    type: "Point";
+    coordinates: [number, number];
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +30,10 @@ const UserSchema = new Schema<IUser>(
     role: { type: String, required: true, enum: ROLES, default: "donor" },
     isAvailable: { type: Boolean, default: true },
     lastDonatedAt: { type: Date },
+    location: {
+      type: { type: String, enum: ['Point'], required: false },
+      coordinates: { type: [Number], required: false }
+    },
   },
   { timestamps: true }
 );
@@ -35,6 +43,7 @@ UserSchema.index({ bloodType: 1, city: 1 });
 UserSchema.index({ role: 1, isAvailable: 1 });
 UserSchema.index({ city: 1, bloodType: 1, isAvailable: 1 });
 UserSchema.index({ isAvailable: 1, lastDonatedAt: -1 });
+UserSchema.index({ location: '2dsphere' });
 
 import { UserMemoryModel } from "@/lib/db/memoryStore";
 

@@ -45,7 +45,7 @@ function MatchResults() {
     }
   }, [searchParams]);
 
-  const executeSearch = async (targetBt: string, targetCity: string) => {
+  const executeSearch = async (targetBt: string, targetCity: string, lat?: number, lng?: number, maxDistance?: number) => {
     if (!targetBt) return;
     setIsLoading(true);
     setError("");
@@ -54,7 +54,7 @@ function MatchResults() {
     setCity(targetCity);
 
     try {
-      const res = await matchDonors(targetBt as BloodType, targetCity || undefined);
+      const res = await matchDonors(targetBt as BloodType, targetCity || undefined, lat, lng, maxDistance);
       const data = res.data;
       setCompatibleTypes(data.compatibleTypes || []);
       setDonors(data.donors || []);
