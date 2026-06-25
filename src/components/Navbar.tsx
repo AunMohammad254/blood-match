@@ -35,10 +35,6 @@ export const Navbar: React.FC = () => {
     router.push("/login");
   };
 
-  if (pathname?.startsWith("/admin")) {
-    return null;
-  }
-
   return (
     <nav className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800/80 shadow-xs transition-all duration-300">
       <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between relative">
