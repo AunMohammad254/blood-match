@@ -2,52 +2,47 @@
 
 import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { flushSync } from "react-dom";
-import { Sun, Moon } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 
-export const ThemeToggle: React.FC = () => {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
-  // Avoid hydration mismatch by waiting until mounted on client
+  // Wait until mounted to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) {
-    return <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-slate-800/50" />;
+    return <div className="w-10 h-10 rounded-full" />;
   }
 
-  const currentTheme = theme === "system" ? resolvedTheme : theme;
+  const isDark = resolvedTheme === "dark";
 
-  const handleToggleTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+  const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const nextTheme = isDark ? "light" : "dark";
 
-    // Support graceful degradation if View Transitions API is not supported or reduced motion is preferred
-    if (
-      typeof window === "undefined" ||
-      !document.startViewTransition ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
+    // If browser doesn't support View Transitions API, just switch theme normally
+    if (!document.startViewTransition) {
       setTheme(nextTheme);
       return;
     }
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX || rect.left + rect.width / 2;
-    const y = e.clientY || rect.top + rect.height / 2;
-
+    // Get click coordinates to start the circle from the exact click location
+    const x = event.clientX;
+    const y = event.clientY;
+    
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
     );
 
     const transition = document.startViewTransition(() => {
-      flushSync(() => {
-        setTheme(nextTheme);
-      });
+      // The callback must update the DOM synchronously (or return a Promise)
+      setTheme(nextTheme);
     });
 
+    // Animate the circle clip-path
     transition.ready.then(() => {
       const clipPath = [
         `circle(0px at ${x}px ${y}px)`,
@@ -56,12 +51,14 @@ export const ThemeToggle: React.FC = () => {
 
       document.documentElement.animate(
         {
-          clipPath: clipPath,
+          clipPath: isDark ? [...clipPath].reverse() : clipPath,
         },
         {
-          duration: 500,
-          easing: "ease-in-out",
-          pseudoElement: "::view-transition-new(root)",
+          duration: 600,
+          easing: "ease-out",
+          pseudoElement: isDark
+            ? "::view-transition-old(root)"
+            : "::view-transition-new(root)",
         }
       );
     });
@@ -69,17 +66,24 @@ export const ThemeToggle: React.FC = () => {
 
   return (
     <button
-      onClick={handleToggleTheme}
-      className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 flex items-center justify-center transition-all duration-200 active:scale-95 border border-gray-200/30 dark:border-slate-700/30 shadow-xs focus:outline-none focus:ring-2 focus:ring-red-500/50"
-      aria-label="Toggle Theme"
-      title={`Switch to ${currentTheme === "dark" ? "Light" : "Dark"} Mode`}
+      onClick={toggleTheme}
+      aria-label="Toggle Dark Mode"
+      className="relative flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/50"
     >
-      {currentTheme === "dark" ? (
-        <Sun className="w-4 h-4 text-amber-400" />
-      ) : (
-        <Moon className="w-4 h-4 text-slate-700" />
-      )}
+      <div className="relative w-5 h-5 flex items-center justify-center overflow-hidden">
+        {/* Sun Icon */}
+        <Sun
+          className={`absolute w-5 h-5 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+            isDark ? "opacity-0 -translate-y-full rotate-90 scale-50" : "opacity-100 translate-y-0 rotate-0 scale-100"
+          }`}
+        />
+        {/* Moon Icon */}
+        <Moon
+          className={`absolute w-5 h-5 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+            isDark ? "opacity-100 translate-y-0 rotate-0 scale-100" : "opacity-0 translate-y-full -rotate-90 scale-50"
+          }`}
+        />
+      </div>
     </button>
   );
-};
-
+}
