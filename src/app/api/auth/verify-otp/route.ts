@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { User } from "@/lib/models/User";
-import { dbConnect } from "@/lib/db";
+import { connectDB } from "@/lib/db/connect";
 import { verifyAuth } from "@/lib/middleware/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    await dbConnect();
+    await connectDB();
     const decoded = await verifyAuth(req);
     if (!decoded) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
