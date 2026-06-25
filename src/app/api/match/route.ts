@@ -17,6 +17,8 @@ export async function GET(req: Request) {
     const lat = searchParams.get("lat");
     const lng = searchParams.get("lng");
     const maxDistance = searchParams.get("maxDistance") || "10000"; // Default 10km
+    const includeUnavailable = searchParams.get("includeUnavailable") === "true";
+    const ignoreCooldown = searchParams.get("ignoreCooldown") === "true";
 
     if (!bloodType) {
       return NextResponse.json({ error: "bloodType is required." }, { status: 400 });
@@ -28,17 +30,23 @@ export async function GET(req: Request) {
 
     const compatibleTypes = getCompatibleDonorTypes(bloodType as BloodType);
 
-    const cooldownDate = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000);
     const query: FilterQuery<any> = {
       role: "donor",
-      isAvailable: true,
       bloodType: { $in: compatibleTypes },
-      $or: [
+    };
+
+    if (!includeUnavailable) {
+      query.isAvailable = true;
+    }
+
+    if (!ignoreCooldown) {
+      const cooldownDate = new Date(Date.now() - 56 * 24 * 60 * 60 * 1000);
+      query.$or = [
         { lastDonatedAt: { $exists: false } },
         { lastDonatedAt: null },
         { lastDonatedAt: { $lt: cooldownDate } }
-      ]
-    };
+      ];
+    }
 
     if (city && city.trim()) {
       query.city = city.trim();
@@ -77,7 +85,32 @@ export async function GET(req: Request) {
       dbQuery = dbQuery.sort({ createdAt: 1 });
     }
 
-    const donors = await dbQuery.lean();
+    let donors = (await dbQuery.lean()) as any[];
+
+    // Calculate match score
+    const now = Date.now();
+    donors = donors.map((d: any) => {
+      let score = 100;
+      
+      let daysSinceDonation = Infinity;
+      if (d.lastDonatedAt) {
+        daysSinceDonation = (now - new Date(d.lastDonatedAt).getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceDonation < 56) {
+          score -= 50; // In cooldown
+        } else if (daysSinceDonation < 90) {
+          score -= 10; // Just out of cooldown
+        }
+      }
+      
+      if (!d.isAvailable) score -= 40;
+
+      return { ...d, matchScore: score };
+    });
+
+    // If not sorting by distance, sort by our custom score
+    if (!isProximitySearch) {
+      donors.sort((a, b) => b.matchScore - a.matchScore);
+    }
 
     return NextResponse.json(
       {

@@ -24,8 +24,10 @@ export default function DashboardPage() {
   // Shared requests state
   const [requests, setRequests] = useState<RecipientRequest[]>([]);
   const [acceptedRequests, setAcceptedRequests] = useState<RecipientRequest[]>([]);
+  const [donationRecords, setDonationRecords] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isLoggingDonation, setIsLoggingDonation] = useState(false);
 
   useEffect(() => {
     const currentUser = getUser();
@@ -78,12 +80,14 @@ export default function DashboardPage() {
 
     try {
       if (currentUser.role === "donor") {
-        const [openRes, acceptedRes] = await Promise.all([
+        const [openRes, acceptedRes, historyRes] = await Promise.all([
           getRequests({ status: "open" }),
-          getRequests({ acceptedByMe: true })
+          getRequests({ acceptedByMe: true }),
+          fetch("/api/donors/history").then(res => res.json())
         ]);
         setRequests(openRes.data.requests || []);
         setAcceptedRequests(acceptedRes.data.requests || []);
+        setDonationRecords(historyRes.records || []);
       } else {
         // Fetch recipient's own requests
         const res = await getRequests({ mine: true });
@@ -158,6 +162,33 @@ export default function DashboardPage() {
     await cancelRequest(id);
     if (user) {
       await fetchData(user);
+    }
+  };
+
+  const handleLogDonation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setIsLoggingDonation(true);
+    try {
+      const res = await fetch("/api/donors/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          hospital: "Local Hospital", // Simplified for MVP
+          city: user.city,
+          units: 1,
+        }),
+      });
+      if (res.ok) {
+        toast.success("Donation logged successfully! You earned a badge point!");
+        await fetchData(user);
+      } else {
+        toast.error("Failed to log donation.");
+      }
+    } catch (err) {
+      toast.error("Network error.");
+    } finally {
+      setIsLoggingDonation(false);
     }
   };
 
@@ -258,6 +289,42 @@ export default function DashboardPage() {
                 </button>
               </div>
             </div>
+
+            {/* Gamification & Donation Log */}
+            <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl border-2 border-gray-100 dark:border-slate-800 shadow-xl p-8 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group">
+              <div className="absolute -left-12 -bottom-12 w-40 h-40 bg-red-500/5 rounded-full blur-2xl group-hover:bg-red-500/10 transition-colors pointer-events-none" />
+              <div className="flex items-center gap-6 z-10 w-full md:w-auto">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-3xl shadow-lg shadow-red-500/40 relative">
+                  🏆
+                  <span className="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-900 font-black text-xs px-2 py-0.5 rounded-full border-2 border-white dark:border-slate-900 shadow-sm">
+                    Level {Math.floor(donationRecords.length / 3) + 1}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Your Impact</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <HeartHandshake className="w-4 h-4 text-red-500" />
+                    <span className="font-bold text-gray-700 dark:text-slate-300">
+                      {donationRecords.length} Lives Saved
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 font-medium mt-1">
+                    {3 - (donationRecords.length % 3)} more donations until next rank up!
+                  </p>
+                </div>
+              </div>
+              <div className="z-10 w-full md:w-auto">
+                <button
+                  onClick={handleLogDonation}
+                  disabled={isLoggingDonation}
+                  className="w-full md:w-auto bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-black py-3.5 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-md active:scale-95 disabled:opacity-50"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>{isLoggingDonation ? "Logging..." : "Log Offline Donation"}</span>
+                </button>
+              </div>
+            </div>
+
             {/* Tactical Active Commitments */}
             {acceptedRequests.length > 0 && (
               <div className="space-y-6 mb-12">

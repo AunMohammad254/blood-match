@@ -250,6 +250,7 @@ export const initialRequests: MockBloodRequest[] = [
 export const memoryDatabase = {
   users: [...initialUsers],
   bloodRequests: [...initialRequests],
+  donationRecords: [] as any[],
 };
 
 // Helper for MockQuery
@@ -556,6 +557,34 @@ export const BloodRequestMemoryModel = {
     }
     return [];
   },
+};
+
+// DonationRecord Memory Operations
+export const DonationRecordMemoryModel = {
+  find: (query: any) => {
+    let matches = memoryDatabase.donationRecords;
+    if (query.donorId) {
+      matches = matches.filter((d) => d.donorId === query.donorId);
+    }
+    return new MockQuery([...matches], true);
+  },
+  create: async (data: any) => {
+    const newRecord = {
+      ...data,
+      _id: "rec_" + Date.now(),
+      donatedAt: data.donatedAt || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    memoryDatabase.donationRecords.push(newRecord);
+    return newRecord;
+  },
+  countDocuments: async (query?: any) => {
+    if (!query) return memoryDatabase.donationRecords.length;
+    let matches = memoryDatabase.donationRecords;
+    if (query.donorId) matches = matches.filter((d) => d.donorId === query.donorId);
+    return matches.length;
+  }
 };
 
 export const memoryLogs: any[] = [];

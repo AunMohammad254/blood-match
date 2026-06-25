@@ -5,7 +5,7 @@ import { Search, Filter, Hospital, Sparkles } from "lucide-react";
 interface MatchSearchFormProps {
   defaultBloodType?: string;
   defaultCity?: string;
-  onSearch: (bloodType: string, city: string, lat?: number, lng?: number, maxDistance?: number) => void;
+  onSearch: (bloodType: string, city: string, lat?: number, lng?: number, maxDistance?: number, includeUnavailable?: boolean, ignoreCooldown?: boolean) => void;
   isLoading: boolean;
 }
 
@@ -20,6 +20,8 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
   const [maxDistance, setMaxDistance] = useState(10000);
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [includeUnavailable, setIncludeUnavailable] = useState(false);
+  const [ignoreCooldown, setIgnoreCooldown] = useState(false);
 
   useEffect(() => {
     if (defaultBloodType) setBloodType(defaultBloodType);
@@ -44,7 +46,7 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(bloodType, city, location?.lat, location?.lng, maxDistance);
+    onSearch(bloodType, city, location?.lat, location?.lng, maxDistance, includeUnavailable, ignoreCooldown);
   };
 
   return (
@@ -134,6 +136,27 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
             </div>
           </div>
         )}
+
+        <div className="md:col-span-12 flex flex-col sm:flex-row sm:items-center gap-4 mt-2">
+          <label className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeUnavailable}
+              onChange={(e) => setIncludeUnavailable(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+            />
+            Include Unavailable Donors
+          </label>
+          <label className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={ignoreCooldown}
+              onChange={(e) => setIgnoreCooldown(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+            />
+            Ignore 56-Day Cooldown (Emergencies)
+          </label>
+        </div>
 
         <div className="md:col-span-12 mt-4">
           <button

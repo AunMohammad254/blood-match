@@ -44,7 +44,15 @@ export const respondToRequest = (id: string, action: "accept" | "decline") => ap
 export const reportRequest = (id: string) => api.post(`/requests/${id}/report`);
 
 // Match
-export const matchDonors = (bloodType: BloodType, city?: string, lat?: number, lng?: number, maxDistance?: number) =>
-  api.get("/match", { params: { bloodType, city, lat, lng, maxDistance } });
+export const matchDonors = (
+  bloodType: BloodType, 
+  city?: string, 
+  lat?: number, 
+  lng?: number, 
+  maxDistance?: number,
+  includeUnavailable?: boolean,
+  ignoreCooldown?: boolean
+) =>
+  api.get("/match", { params: { bloodType, city, lat, lng, maxDistance, includeUnavailable, ignoreCooldown } });
 
 export default api;

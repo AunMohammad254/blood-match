@@ -10,6 +10,7 @@ interface DonorCardProps {
   city: string;
   phone: string;
   isAvailable: boolean;
+  lastDonatedAt?: string;
 }
 
 export const DonorCard = memo<DonorCardProps>(({
@@ -18,6 +19,7 @@ export const DonorCard = memo<DonorCardProps>(({
   city,
   phone,
   isAvailable,
+  lastDonatedAt,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -32,6 +34,11 @@ export const DonorCard = memo<DonorCardProps>(({
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  const daysSinceDonation = lastDonatedAt 
+    ? Math.floor((Date.now() - new Date(lastDonatedAt).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  const inCooldown = daysSinceDonation !== null && daysSinceDonation < 56;
 
   return (
     <div
@@ -56,9 +63,13 @@ export const DonorCard = memo<DonorCardProps>(({
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2 py-0.5 rounded-md">Verified</span>
               </div>
               <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight mt-0.5">{name}</h3>
-              <div className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-slate-400 mt-0.5">
-                <MapPin className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500 shrink-0" />
-                <span>📍 {city} Area</span>
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-slate-400 mt-0.5 flex-wrap">
+                <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" /> {city}</span>
+                {inCooldown && (
+                  <span className="text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-200/50">
+                    Resting ({56 - daysSinceDonation}d left)
+                  </span>
+                )}
               </div>
             </div>
           </div>
