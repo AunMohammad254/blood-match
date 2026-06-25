@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { BLOOD_TYPES, CITIES } from "@/lib/constants";
 import { Search, Filter, Hospital, Sparkles } from "lucide-react";
+import { PremiumSelect, Option } from "./ui/PremiumSelect";
 
 interface MatchSearchFormProps {
   defaultBloodType?: string;
@@ -63,19 +64,12 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-red-650" />
             <span>Blood Type Needed <span className="text-red-500">*</span></span>
           </label>
-          <select
-            id="searchBloodType"
+          <PremiumSelect
             value={bloodType}
-            onChange={(e) => setBloodType(e.target.value)}
-            required
-            className="w-full bg-gray-50/90 dark:bg-slate-800 border-2 border-gray-200/80 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-black text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:bg-white dark:focus:bg-slate-900 shadow-inner transition"
-          >
-            {BLOOD_TYPES.map((bt) => (
-              <option key={bt} value={bt} className="dark:bg-slate-950">
-                {bt} Universal Group Fulfiller
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setBloodType(val)}
+            options={BLOOD_TYPES.map(bt => ({ value: bt, label: `${bt} Universal Group Fulfiller` }))}
+            placeholder="Select Blood Type"
+          />
         </div>
 
         <div className="md:col-span-4">
@@ -87,22 +81,18 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
             <span>City Center (Optional)</span>
           </label>
           <div className="flex gap-2">
-            <select
-              id="searchCity"
+            <PremiumSelect
               value={city}
-              onChange={(e) => {
-                setCity(e.target.value);
-                if (e.target.value) setLocation(null);
+              onChange={(val) => {
+                setCity(val);
+                if (val) setLocation(null);
               }}
-              className="w-full bg-gray-50/90 dark:bg-slate-800 border-2 border-gray-200/80 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:bg-white dark:focus:bg-slate-900 shadow-inner transition"
-            >
-              <option value="" className="dark:bg-slate-950">🌐 All Pakistan Cities</option>
-              {CITIES.map((c) => (
-                <option key={c} value={c} className="dark:bg-slate-950">
-                  {c} Triage Hub
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "🌐 All Pakistan Cities" },
+                ...CITIES.map((c) => ({ value: c, label: `${c} Triage Hub` }))
+              ]}
+              placeholder="🌐 All Pakistan Cities"
+            />
             <button
               type="button"
               onClick={handleLocate}
@@ -123,16 +113,16 @@ export const MatchSearchForm: React.FC<MatchSearchFormProps> = ({
               <label className="block text-xs font-extrabold text-gray-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                 Search Radius
               </label>
-              <select
-                value={maxDistance}
-                onChange={(e) => setMaxDistance(Number(e.target.value))}
-                className="w-full bg-gray-50/90 dark:bg-slate-800 border-2 border-gray-200/80 dark:border-slate-700 rounded-2xl px-4 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-red-500/50"
-              >
-                <option value={5000}>Within 5 km</option>
-                <option value={10000}>Within 10 km</option>
-                <option value={25000}>Within 25 km</option>
-                <option value={50000}>Within 50 km</option>
-              </select>
+              <PremiumSelect
+                value={String(maxDistance)}
+                onChange={(val) => setMaxDistance(Number(val))}
+                options={[
+                  { value: "5000", label: "Within 5 km" },
+                  { value: "10000", label: "Within 10 km" },
+                  { value: "25000", label: "Within 25 km" },
+                  { value: "50000", label: "Within 50 km" },
+                ]}
+              />
             </div>
           </div>
         )}

@@ -10,6 +10,9 @@ export interface MockUser {
   city: string;
   role: "donor" | "recipient" | "admin" | "coordinator";
   isAvailable: boolean;
+  isPhoneVerified: boolean;
+  verificationOtp?: string;
+  verificationOtpExpiry?: string;
   lastDonatedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -50,6 +53,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    isPhoneVerified: false,
     lastDonatedAt: "2024-03-15T10:00:00.000Z",
     createdAt: "2024-06-01T10:00:00.000Z",
     updatedAt: "2024-06-01T10:00:00.000Z",
@@ -64,6 +68,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "recipient",
     isAvailable: true,
+    isPhoneVerified: true,
     createdAt: "2024-06-01T10:00:00.000Z",
     updatedAt: "2024-06-01T10:00:00.000Z",
   },
@@ -77,6 +82,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    isPhoneVerified: true,
     lastDonatedAt: "2024-04-10T10:00:00.000Z",
     createdAt: "2024-06-02T10:00:00.000Z",
     updatedAt: "2024-06-02T10:00:00.000Z",
@@ -91,6 +97,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    isPhoneVerified: true,
     createdAt: "2024-06-03T10:00:00.000Z",
     updatedAt: "2024-06-03T10:00:00.000Z",
   },
@@ -104,6 +111,7 @@ export const initialUsers: MockUser[] = [
     city: "Lahore",
     role: "donor",
     isAvailable: true,
+    isPhoneVerified: true,
     lastDonatedAt: "2024-05-01T10:00:00.000Z",
     createdAt: "2024-06-04T10:00:00.000Z",
     updatedAt: "2024-06-04T10:00:00.000Z",
@@ -118,6 +126,7 @@ export const initialUsers: MockUser[] = [
     city: "Islamabad",
     role: "donor",
     isAvailable: true,
+    isPhoneVerified: true,
     createdAt: "2024-06-05T10:00:00.000Z",
     updatedAt: "2024-06-05T10:00:00.000Z",
   },
@@ -131,6 +140,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    isPhoneVerified: true,
     createdAt: "2024-06-06T10:00:00.000Z",
     updatedAt: "2024-06-06T10:00:00.000Z",
   },
@@ -144,6 +154,7 @@ export const initialUsers: MockUser[] = [
     city: "Lahore",
     role: "donor",
     isAvailable: true,
+    isPhoneVerified: true,
     createdAt: "2024-06-07T10:00:00.000Z",
     updatedAt: "2024-06-07T10:00:00.000Z",
   },
@@ -157,6 +168,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "admin",
     isAvailable: true,
+    isPhoneVerified: true,
     createdAt: "2024-01-01T00:00:00.000Z",
     updatedAt: "2024-01-01T00:00:00.000Z",
   },
@@ -170,6 +182,7 @@ export const initialUsers: MockUser[] = [
     city: "Karachi",
     role: "coordinator",
     isAvailable: true,
+    isPhoneVerified: true,
     createdAt: "2024-01-01T00:00:00.000Z",
     updatedAt: "2024-01-01T00:00:00.000Z",
   },

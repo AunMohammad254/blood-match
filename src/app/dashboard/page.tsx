@@ -10,7 +10,7 @@ import { RequestCard } from "@/components/RequestCard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { RequestCardSkeleton } from "@/components/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
-import { PlusCircle, Search, AlertCircle, RefreshCw, Sparkles, Activity, ShieldCheck, HeartHandshake, MapPin } from "lucide-react";
+import { PlusCircle, Search, AlertCircle, RefreshCw, Sparkles, Activity, ShieldCheck, ShieldAlert, HeartHandshake, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 export default function DashboardPage() {
@@ -244,6 +244,27 @@ export default function DashboardPage() {
         {/* DONOR ECOSYSTEM */}
         {user.role === "donor" && (
           <div className="space-y-12">
+            {!user.isPhoneVerified && (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200 dark:border-amber-900/30 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-fadeIn">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center shrink-0">
+                    <ShieldAlert className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-amber-900 dark:text-amber-300">Verify Your Phone Number</h3>
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-400/80 mt-1">
+                      To increase trust and help recipients contact you safely, please verify your phone number. Unverified donors may be filtered out by some hospitals.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/dashboard/profile"
+                  className="shrink-0 w-full sm:w-auto text-center px-6 py-3 bg-amber-200 hover:bg-amber-300 text-amber-900 font-black rounded-xl transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                >
+                  Verify Now
+                </Link>
+              </div>
+            )}
             
             {/* Availability Neomorphic Command Toggle */}
             <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl border-2 border-gray-100 dark:border-slate-800 shadow-xl p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden group transition-all duration-300">

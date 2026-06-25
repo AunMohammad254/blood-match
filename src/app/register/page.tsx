@@ -7,6 +7,7 @@ import { BLOOD_TYPES, CITIES, Role, BloodType } from "@/lib/constants";
 import { isLoggedIn } from "@/lib/auth";
 import { registerUser } from "@/lib/api";
 import { ArrowLeft, CheckCircle2, UserPlus, HeartHandshake, PhoneCall, Mail, Lock, Phone, Droplets, MapPin, Eye, EyeOff } from "lucide-react";
+import { PremiumSelect } from "@/components/ui/PremiumSelect";
 
 function RegisterForm() {
   const router = useRouter();
@@ -302,19 +303,12 @@ function RegisterForm() {
               <Droplets className="w-3.5 h-3.5 text-red-655" />
               <span>Blood Group <span className="text-red-655">*</span></span>
             </label>
-            <select
-              id="regBlood"
+            <PremiumSelect
               value={bloodType}
-              onChange={(e) => setBloodType(e.target.value as BloodType)}
-              required
-              className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
-            >
-              {BLOOD_TYPES.map((bt) => (
-                <option key={bt} value={bt} className="bg-white dark:bg-slate-950">
-                  {bt}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setBloodType(val as BloodType)}
+              options={BLOOD_TYPES.map((bt) => ({ value: bt, label: bt }))}
+              placeholder="Select Blood Type"
+            />
           </div>
 
           <div>
@@ -322,19 +316,12 @@ function RegisterForm() {
               <MapPin className="w-3.5 h-3.5 text-red-655" />
               <span>City Hub <span className="text-red-655">*</span></span>
             </label>
-            <select
-              id="regCity"
+            <PremiumSelect
               value={city}
-              onChange={(e) => setCity(e.target.value)}
-              required
-              className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
-            >
-              {CITIES.map((c) => (
-                <option key={c} value={c} className="bg-white dark:bg-slate-955">
-                  {c} Center
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setCity(val)}
+              options={CITIES.map((c) => ({ value: c, label: `${c} Center` }))}
+              placeholder="Select City"
+            />
           </div>
         </div>
 

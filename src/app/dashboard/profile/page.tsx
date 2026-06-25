@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { getUser, getToken, saveAuth, logout, updateUser } from "@/lib/auth";
 import { User } from "@/types";
 import { BLOOD_TYPES, CITIES } from "@/lib/constants";
-import { User as UserIcon, Phone, MapPin, Droplets, Save, LogOut, Loader2, Edit3, Key, X, Calendar, Trash2, Info, Heart, AlertCircle } from "lucide-react";
+import { User as UserIcon, Phone, MapPin, Droplets, Save, LogOut, Loader2, Edit3, Key, X, Calendar, Trash2, Info, Heart, AlertCircle, ShieldCheck, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+import { PremiumSelect } from "@/components/ui/PremiumSelect";
+import { PremiumDatePicker } from "@/components/ui/PremiumDatePicker";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -18,6 +20,12 @@ export default function ProfilePage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+
+  // OTP State
+  const [otpCode, setOtpCode] = useState("");
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
   // Edit form state
   const [editForm, setEditForm] = useState({ name: "", phone: "", city: "", lastDonatedAt: "" });
@@ -191,6 +199,70 @@ export default function ProfilePage() {
     router.push("/");
   };
 
+  const handleSendOtp = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    setIsSendingOtp(true);
+    try {
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", "OTP sent successfully! Check your phone.");
+        setShowOtpModal(true);
+      } else {
+        showToast("error", data.error || "Failed to send OTP.");
+      }
+    } catch {
+      showToast("error", "Network error. Please try again.");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.length !== 6) {
+      showToast("error", "Please enter a valid 6-digit OTP.");
+      return;
+    }
+
+    const token = getToken();
+    if (!token) return;
+
+    setIsVerifyingOtp(true);
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ otp: otpCode }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", "Phone number verified successfully!");
+        setShowOtpModal(false);
+        setOtpCode("");
+        if (user) {
+          const updatedUser = { ...user, isPhoneVerified: true };
+          setUser(updatedUser);
+          updateUser(updatedUser);
+        }
+      } else {
+        showToast("error", data.error || "Invalid OTP.");
+      }
+    } catch {
+      showToast("error", "Network error. Please try again.");
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
@@ -274,7 +346,37 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <InfoRow icon={<Droplets className="w-4 h-4 text-red-650" />} label="Blood Type" value={user.bloodType} valueClass="text-red-650 dark:text-red-400 font-black text-lg" />
             <InfoRow icon={<MapPin className="w-4 h-4 text-blue-600" />} label="City" value={user.city} />
-            <InfoRow icon={<Phone className="w-4 h-4 text-green-600" />} label="Phone" value={user.phone} />
+            <div className="flex items-start justify-between gap-3 p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 border border-gray-100 dark:border-slate-800 transition-colors duration-300">
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-sm flex-shrink-0 mt-0.5">
+                  <Phone className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Phone</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-sm text-gray-900 dark:text-white font-bold">{user.phone}</p>
+                    {user.isPhoneVerified ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800 uppercase tracking-widest">
+                        <ShieldCheck className="w-3 h-3" /> Verified
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded border bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800 uppercase tracking-widest">
+                        <ShieldAlert className="w-3 h-3" /> Unverified
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {!user.isPhoneVerified && user.role === "donor" && (
+                <button
+                  onClick={handleSendOtp}
+                  disabled={isSendingOtp}
+                  className="text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 dark:text-amber-300 px-3 py-1.5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50 flex flex-shrink-0 items-center gap-1"
+                >
+                  {isSendingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : "Verify Now"}
+                </button>
+              )}
+            </div>
             <InfoRow icon={<UserIcon className="w-4 h-4 text-purple-600" />} label="Member Since" value={joinDate} />
             {user.role === "donor" && (
               <InfoRow icon={<Calendar className="w-4 h-4 text-orange-650" />} label="Last Donation" value={lastDonationDate} />
@@ -433,16 +535,12 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-wider">City</label>
-                <select
-                  required
+                <PremiumSelect
                   value={editForm.city}
-                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all font-medium appearance-none text-gray-900 dark:text-white"
-                >
-                  {CITIES.map((city) => (
-                    <option key={city} value={city} className="dark:bg-slate-900">{city}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setEditForm({ ...editForm, city: val })}
+                  options={CITIES.map((city) => ({ value: city, label: city }))}
+                  placeholder="Select City"
+                />
               </div>
               {user.role === "donor" && (
                 <div className="space-y-1.5">
@@ -455,11 +553,15 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   </label>
-                  <input
-                    type="date"
-                    value={editForm.lastDonatedAt}
-                    onChange={(e) => setEditForm({ ...editForm, lastDonatedAt: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all font-medium text-gray-900 dark:text-white"
+                  <PremiumDatePicker
+                    selected={editForm.lastDonatedAt ? new Date(editForm.lastDonatedAt) : null}
+                    onChange={(date) => {
+                      setEditForm({ 
+                        ...editForm, 
+                        lastDonatedAt: date ? date.toISOString().split("T")[0] : "" 
+                      });
+                    }}
+                    placeholderText="Select Date"
                   />
                 </div>
               )}
@@ -574,6 +676,46 @@ export default function ProfilePage() {
                 Keep My Account
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Verification Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl border border-gray-150 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="text-xl font-black text-gray-900 dark:text-white">Verify Phone Number</h3>
+              <button onClick={() => setShowOtpModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/50">
+                <X className="w-5 h-5 text-gray-500 dark:text-slate-400" />
+              </button>
+            </div>
+            <form onSubmit={handleVerifyOtp} className="p-6 text-center">
+              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600 dark:text-amber-400">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <p className="text-sm text-gray-500 dark:text-slate-400 font-medium mb-6">
+                We sent a 6-digit OTP code to <strong className="text-gray-900 dark:text-white">{user.phone}</strong>. Please enter it below.
+              </p>
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  required
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="------"
+                  className="w-full text-center tracking-[1em] text-2xl font-black px-4 py-4 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 transition-all text-gray-900 dark:text-white"
+                />
+                <button
+                  type="submit"
+                  disabled={isVerifyingOtp || otpCode.length !== 6}
+                  className="w-full py-4 rounded-2xl bg-red-600 text-white font-black hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                >
+                  {isVerifyingOtp ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Now"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

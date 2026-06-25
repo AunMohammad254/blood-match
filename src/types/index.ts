@@ -9,6 +9,7 @@ export interface User {
   city: string;
   phone: string;
   isAvailable: boolean;
+  isPhoneVerified: boolean;
   lastDonatedAt?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -23,6 +24,7 @@ export interface Donor {
   city: string;
   phone?: string; // Conditionally included by API — only for admin/coordinator roles
   isAvailable: boolean;
+  isPhoneVerified: boolean;
   lastDonatedAt?: string;
   createdAt?: string;
 }

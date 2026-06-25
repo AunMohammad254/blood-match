@@ -20,9 +20,11 @@ import {
   ArrowLeft,
   Clock,
   ShieldCheck,
+  ShieldAlert,
   Copy,
   Check
 } from "lucide-react";
+import { PremiumSelect } from "@/components/ui/PremiumSelect";
 
 // Interface for simulated plotted donor with coordinates
 interface PlottedDonor extends Donor {
@@ -188,16 +190,12 @@ export default function RadarPage() {
             <Hospital className="w-3.5 h-3.5 text-red-655" />
             <span>Center Triage Hub (City)</span>
           </label>
-          <select
-            id="radarCity"
+          <PremiumSelect
             value={selectedCity}
-            onChange={(e) => setSelectedCity(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-805 border border-slate-250 dark:border-slate-750 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
-          >
-            {CITIES.map((c) => (
-              <option key={c} value={c} className="bg-white dark:bg-slate-950">{c} Command Center</option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedCity(val)}
+            options={CITIES.map((c) => ({ value: c, label: `${c} Command Center` }))}
+            placeholder="Select Hub"
+          />
         </div>
 
         <div>
@@ -205,20 +203,18 @@ export default function RadarPage() {
             <Filter className="w-3.5 h-3.5 text-red-655" />
             <span>Highlight Blood Type</span>
           </label>
-          <select
-            id="radarBlood"
+          <PremiumSelect
             value={targetBlood}
-            onChange={(e) => {
-              setTargetBlood(e.target.value);
+            onChange={(val) => {
+              setTargetBlood(val);
               setSelectedDonor(null);
             }}
-            className="w-full bg-slate-50 dark:bg-slate-805 border border-slate-250 dark:border-slate-750 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
-          >
-            <option value="All" className="bg-white dark:bg-slate-950">All Blood Types (Universal View)</option>
-            {BLOOD_TYPES.map((bt) => (
-              <option key={bt} value={bt} className="bg-white dark:bg-slate-955">{bt} Donors</option>
-            ))}
-          </select>
+            options={[
+              { value: "All", label: "All Blood Types (Universal View)" },
+              ...BLOOD_TYPES.map((bt) => ({ value: bt, label: `${bt} Donors` }))
+            ]}
+            placeholder="Select Blood Type"
+          />
         </div>
 
         <div className="bg-red-50/60 dark:bg-red-955/15 rounded-xl p-3.5 border border-red-100 dark:border-red-900/30 flex items-center justify-between">
@@ -373,9 +369,15 @@ export default function RadarPage() {
                       {selectedDonor.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-955/20 border border-green-200 dark:border-green-900/40 px-2.5 py-0.5 rounded-full inline-block mb-1">
-                        ✓ Active Verified Donor
-                      </span>
+                      {selectedDonor.isPhoneVerified ? (
+                        <span className="text-xs font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-955/20 border border-green-200 dark:border-green-900/40 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 mb-1">
+                          <ShieldCheck className="w-3.5 h-3.5" /> Active Verified Donor
+                        </span>
+                      ) : (
+                        <span className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-955/20 border border-amber-200 dark:border-amber-900/40 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 mb-1">
+                          <ShieldAlert className="w-3.5 h-3.5" /> Unverified Donor
+                        </span>
+                      )}
                       <h3 className="text-xl font-black text-slate-900 dark:text-white">{selectedDonor.name}</h3>
                     </div>
                   </div>

@@ -10,6 +10,9 @@ export interface IUser extends Document {
   city: string;
   role: "donor" | "recipient";
   isAvailable: boolean;
+  isPhoneVerified: boolean;
+  verificationOtp?: string;
+  verificationOtpExpiry?: Date;
   lastDonatedAt?: Date;
   location?: {
     type: "Point";
@@ -29,6 +32,9 @@ const UserSchema = new Schema<IUser>(
     city: { type: String, required: true, trim: true },
     role: { type: String, required: true, enum: ROLES, default: "donor" },
     isAvailable: { type: Boolean, default: true },
+    isPhoneVerified: { type: Boolean, default: false },
+    verificationOtp: { type: String, required: false },
+    verificationOtpExpiry: { type: Date, required: false },
     lastDonatedAt: { type: Date },
     location: {
       type: { type: String, enum: ['Point'], required: false },
@@ -43,6 +49,7 @@ UserSchema.index({ bloodType: 1, city: 1 });
 UserSchema.index({ role: 1, isAvailable: 1 });
 UserSchema.index({ city: 1, bloodType: 1, isAvailable: 1 });
 UserSchema.index({ isAvailable: 1, lastDonatedAt: -1 });
+UserSchema.index({ verificationOtpExpiry: 1 }, { expireAfterSeconds: 0 }); // Auto cleanup expired OTPs
 UserSchema.index({ location: '2dsphere' });
 
 import { UserMemoryModel } from "@/lib/db/memoryStore";

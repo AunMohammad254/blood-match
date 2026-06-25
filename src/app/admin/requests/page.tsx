@@ -10,6 +10,7 @@ import {
   AlertTriangle, Clock, ChevronLeft, ChevronRight, Search,
   Plus, Pencil, X
 } from "lucide-react";
+import { PremiumSelect } from "@/components/ui/PremiumSelect";
 
 interface AdminRequest {
   _id: string;
@@ -288,13 +289,11 @@ export default function AdminRequestsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Blood Type Required</label>
-                  <select 
-                    value={createForm.bloodType} 
-                    onChange={(e) => setCreateForm({ ...createForm, bloodType: e.target.value })} 
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
-                  >
-                    {BLOOD_TYPES.map((t) => <option key={t} value={t} className="bg-white dark:bg-slate-950">{t}</option>)}
-                  </select>
+                  <PremiumSelect
+                    value={createForm.bloodType}
+                    onChange={(val) => setCreateForm({ ...createForm, bloodType: val })}
+                    options={BLOOD_TYPES.map((t) => ({ value: t, label: t }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Units Needed (1-20)</label>
@@ -322,25 +321,23 @@ export default function AdminRequestsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">City</label>
-                  <select 
-                    value={createForm.city} 
-                    onChange={(e) => setCreateForm({ ...createForm, city: e.target.value })} 
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
-                  >
-                    {CITIES.map((c) => <option key={c} value={c} className="bg-white dark:bg-slate-950">{c}</option>)}
-                  </select>
+                  <PremiumSelect
+                    value={createForm.city}
+                    onChange={(val) => setCreateForm({ ...createForm, city: val })}
+                    options={CITIES.map((c) => ({ value: c, label: c }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Urgency Level</label>
-                  <select 
-                    value={createForm.urgency} 
-                    onChange={(e) => setCreateForm({ ...createForm, urgency: e.target.value as any })} 
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
-                  >
-                    <option value="normal" className="bg-white dark:bg-slate-955">Normal</option>
-                    <option value="urgent" className="bg-white dark:bg-slate-955">Urgent</option>
-                    <option value="critical" className="bg-white dark:bg-slate-955">Critical</option>
-                  </select>
+                  <PremiumSelect
+                    value={createForm.urgency}
+                    onChange={(val) => setCreateForm({ ...createForm, urgency: val as any })}
+                    options={[
+                      { value: "normal", label: "Normal" },
+                      { value: "urgent", label: "Urgent" },
+                      { value: "critical", label: "Critical" }
+                    ]}
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -413,13 +410,11 @@ export default function AdminRequestsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Blood Type</label>
-                  <select 
-                    value={editForm.bloodType} 
-                    onChange={(e) => setEditForm({ ...editForm, bloodType: e.target.value })} 
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
-                  >
-                    {BLOOD_TYPES.map((t) => <option key={t} value={t} className="bg-white dark:bg-slate-950">{t}</option>)}
-                  </select>
+                  <PremiumSelect
+                    value={editForm.bloodType}
+                    onChange={(val) => setEditForm({ ...editForm, bloodType: val })}
+                    options={BLOOD_TYPES.map((t) => ({ value: t, label: t }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Units Required</label>
@@ -447,25 +442,23 @@ export default function AdminRequestsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">City</label>
-                  <select 
-                    value={editForm.city} 
-                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} 
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-550 transition-all"
-                  >
-                    {CITIES.map((c) => <option key={c} value={c} className="bg-white dark:bg-slate-950">{c}</option>)}
-                  </select>
+                  <PremiumSelect
+                    value={editForm.city}
+                    onChange={(val) => setEditForm({ ...editForm, city: val })}
+                    options={CITIES.map((c) => ({ value: c, label: c }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Urgency Level</label>
-                  <select 
-                    value={editForm.urgency} 
-                    onChange={(e) => setEditForm({ ...editForm, urgency: e.target.value as any })} 
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-550 transition-all"
-                  >
-                    <option value="normal" className="bg-white dark:bg-slate-955">Normal</option>
-                    <option value="urgent" className="bg-white dark:bg-slate-955">Urgent</option>
-                    <option value="critical" className="bg-white dark:bg-slate-955">Critical</option>
-                  </select>
+                  <PremiumSelect
+                    value={editForm.urgency}
+                    onChange={(val) => setEditForm({ ...editForm, urgency: val as any })}
+                    options={[
+                      { value: "normal", label: "Normal" },
+                      { value: "urgent", label: "Urgent" },
+                      { value: "critical", label: "Critical" }
+                    ]}
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -481,17 +474,17 @@ export default function AdminRequestsPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Status</label>
-                  <select 
-                    value={editForm.status} 
-                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} 
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-550 transition-all"
-                  >
-                    <option value="open" className="bg-white dark:bg-slate-950">Open</option>
-                    <option value="accepted" className="bg-white dark:bg-slate-950">Accepted</option>
-                    <option value="rejected" className="bg-white dark:bg-slate-950">Rejected</option>
-                    <option value="fulfilled" className="bg-white dark:bg-slate-950">Fulfilled</option>
-                    <option value="cancelled" className="bg-white dark:bg-slate-950">Cancelled</option>
-                  </select>
+                  <PremiumSelect
+                    value={editForm.status}
+                    onChange={(val) => setEditForm({ ...editForm, status: val })}
+                    options={[
+                      { value: "open", label: "Open" },
+                      { value: "accepted", label: "Accepted" },
+                      { value: "rejected", label: "Rejected" },
+                      { value: "fulfilled", label: "Fulfilled" },
+                      { value: "cancelled", label: "Cancelled" }
+                    ]}
+                  />
                 </div>
               </div>
               <div className="pt-4 flex gap-3">
@@ -581,29 +574,33 @@ export default function AdminRequestsPage() {
 
         <div className="flex flex-wrap gap-3 items-center">
           <Filter className="w-4 h-4 text-slate-400 flex-shrink-0" />
-          <select 
-            value={filterStatus} 
-            onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }} 
-            className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-250 dark:border-slate-750 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all capitalize"
-          >
-            {STATUS_OPTIONS.map((s) => <option key={s} value={s} className="bg-white dark:bg-slate-950">{s === "all" ? "All Statuses" : s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-          </select>
-          <select 
-            value={filterBloodType} 
-            onChange={(e) => { setFilterBloodType(e.target.value); setPage(1); }} 
-            className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-250 dark:border-slate-750 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
-          >
-            <option value="all" className="bg-white dark:bg-slate-955">All Blood Types</option>
-            {BLOOD_TYPES.map((bt) => <option key={bt} value={bt} className="bg-white dark:bg-slate-955">{bt}</option>)}
-          </select>
-          <select 
-            value={filterCity} 
-            onChange={(e) => { setFilterCity(e.target.value); setPage(1); }} 
-            className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-250 dark:border-slate-750 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 transition-all"
-          >
-            <option value="all" className="bg-white dark:bg-slate-955">All Cities</option>
-            {CITIES.map((c) => <option key={c} value={c} className="bg-white dark:bg-slate-955">{c}</option>)}
-          </select>
+          <div className="w-40">
+            <PremiumSelect
+              value={filterStatus}
+              onChange={(val) => { setFilterStatus(val); setPage(1); }}
+              options={STATUS_OPTIONS.map((s) => ({ value: s, label: s === "all" ? "All Statuses" : s.charAt(0).toUpperCase() + s.slice(1) }))}
+            />
+          </div>
+          <div className="w-40">
+            <PremiumSelect
+              value={filterBloodType}
+              onChange={(val) => { setFilterBloodType(val); setPage(1); }}
+              options={[
+                { value: "all", label: "All Blood Types" },
+                ...BLOOD_TYPES.map((bt) => ({ value: bt, label: bt }))
+              ]}
+            />
+          </div>
+          <div className="w-40">
+            <PremiumSelect
+              value={filterCity}
+              onChange={(val) => { setFilterCity(val); setPage(1); }}
+              options={[
+                { value: "all", label: "All Cities" },
+                ...CITIES.map((c) => ({ value: c, label: c }))
+              ]}
+            />
+          </div>
         </div>
       </div>
 

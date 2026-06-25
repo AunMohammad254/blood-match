@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { BLOOD_TYPES, CITIES, URGENCY_LEVELS, BloodType, UrgencyLevel } from "@/lib/constants";
 import { createRequest } from "@/lib/api";
 import { ArrowLeft, Send, Sparkles, AlertTriangle, Bell, Droplets } from "lucide-react";
+import { PremiumSelect } from "@/components/ui/PremiumSelect";
 
 function CreateRequestForm() {
   const router = useRouter();
@@ -191,19 +192,12 @@ function CreateRequestForm() {
               <label htmlFor="reqBloodType" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
                 Blood Type Needed <span className="text-red-500">*</span>
               </label>
-              <select
-                id="reqBloodType"
+              <PremiumSelect
                 value={bloodType}
-                onChange={(e) => setBloodType(e.target.value as BloodType)}
-                required
-                className="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium transition-all duration-200"
-              >
-                {BLOOD_TYPES.map((bt) => (
-                  <option key={bt} value={bt} className="dark:bg-slate-900">
-                    {bt}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setBloodType(val as BloodType)}
+                options={BLOOD_TYPES.map((bt) => ({ value: bt, label: bt }))}
+                placeholder="Select Blood Type"
+              />
             </div>
           </div>
 
@@ -239,27 +233,16 @@ function CreateRequestForm() {
               <label htmlFor="reqUrgency" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
                 Urgency Level <span className="text-red-500">*</span>
               </label>
-              <select
-                id="reqUrgency"
+              <PremiumSelect
                 value={urgency}
-                onChange={(e) => setUrgency(e.target.value as UrgencyLevel)}
-                required
-                className={`w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 font-medium transition-all duration-200 ${
-                  urgency === "critical"
-                    ? "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-900/30 text-red-800 dark:text-red-400"
-                    : urgency === "urgent"
-                    ? "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-300 dark:border-yellow-900/30 text-yellow-800 dark:text-yellow-400"
-                    : "bg-gray-50 dark:bg-slate-800 border-gray-300 dark:border-slate-700 text-gray-800 dark:text-slate-300"
-                }`}
-              >
-                {URGENCY_LEVELS.map((u) => (
-                  <option key={u} value={u} className="bg-white text-gray-900 dark:bg-slate-900 dark:text-white">
-                    {u === "critical" && "🔴 Critical"}
-                    {u === "urgent" && "🟡 Urgent"}
-                    {u === "normal" && "🟢 Normal"}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setUrgency(val as UrgencyLevel)}
+                options={[
+                  { value: "critical", label: "🔴 Critical" },
+                  { value: "urgent", label: "🟡 Urgent" },
+                  { value: "normal", label: "🟢 Normal" }
+                ]}
+                placeholder="Select Urgency"
+              />
             </div>
           </div>
 
@@ -312,19 +295,12 @@ function CreateRequestForm() {
               <label htmlFor="reqCity" className="block text-sm font-medium text-gray-700 dark:text-slate-350 mb-1">
                 City <span className="text-red-500">*</span>
               </label>
-              <select
-                id="reqCity"
+              <PremiumSelect
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
-                required
-                className="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium transition-all duration-200"
-              >
-                {CITIES.map((c) => (
-                  <option key={c} value={c} className="dark:bg-slate-900">
-                    {c}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setCity(val)}
+                options={CITIES.map((c) => ({ value: c, label: c }))}
+                placeholder="Select City"
+              />
             </div>
           </div>
 

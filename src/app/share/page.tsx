@@ -22,6 +22,7 @@ import {
   Droplets,
   AlertTriangle
 } from "lucide-react";
+import { PremiumSelect } from "@/components/ui/PremiumSelect";
 
 function ShareSuite() {
   const searchParams = useSearchParams();
@@ -141,20 +142,20 @@ function ShareSuite() {
         {requests.length > 1 && (
           <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-1.5 shadow-sm flex items-center gap-2 transition-colors duration-300">
             <span className="text-xs font-semibold text-gray-500 dark:text-slate-400 pl-2">Select Request:</span>
-            <select
-              value={req._id}
-              onChange={(e) => {
-                const f = requests.find((r) => r._id === e.target.value);
-                if (f) setSelectedRequest(f);
-              }}
-              className="bg-gray-50 dark:bg-slate-805 border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white text-xs rounded-lg px-2.5 py-1.5 font-semibold focus:outline-none focus:ring-2 focus:ring-red-500/50"
-            >
-              {requests.map((item) => (
-                <option key={item._id} value={item._id} className="dark:bg-slate-900">
-                  {item.patientName} ({item.bloodType}) · {item.city}
-                </option>
-              ))}
-            </select>
+            <div className="w-64">
+              <PremiumSelect
+                value={req._id!}
+                onChange={(val) => {
+                  const f = requests.find((r) => r._id === val);
+                  if (f) setSelectedRequest(f);
+                }}
+                options={requests.map((item) => ({
+                  value: item._id!,
+                  label: `${item.patientName} (${item.bloodType}) · ${item.city}`
+                }))}
+                placeholder="Select Request"
+              />
+            </div>
           </div>
         )}
       </div>
