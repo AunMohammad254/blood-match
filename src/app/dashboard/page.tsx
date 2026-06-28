@@ -13,6 +13,7 @@ import { RequestCardSkeleton } from "@/components/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
 import { PlusCircle, Search, AlertCircle, RefreshCw, Sparkles, Activity, ShieldCheck, ShieldAlert, HeartHandshake, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -67,13 +68,13 @@ export default function DashboardPage() {
           });
           fetchData(user);
         }
-      } catch (err) {
-        console.error("Failed to parse SSE event data:", err);
+      } catch (err: any) {
+        logger.error("Failed to parse SSE event data:", err);
       }
     };
 
     eventSource.onerror = (err) => {
-      console.error("SSE connection error:", err);
+      logger.error("SSE connection error:", err);
     };
 
     return () => {
@@ -197,7 +198,7 @@ export default function DashboardPage() {
       } else {
         toast.error("Failed to log donation.");
       }
-    } catch (err) {
+    } catch (err: any) {
       toast.error("Network error.");
     } finally {
       setIsLoggingDonation(false);

@@ -11,6 +11,16 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>();
 
+// Cleanup interval to prevent memory leaks in the map
+setInterval(() => {
+  const now = Date.now();
+  store.forEach((entry, key) => {
+    if (now > entry.resetAt) {
+      store.delete(key);
+    }
+  });
+}, 60 * 1000); // Clean up every minute
+
 interface RateLimitOptions {
   /** Max requests allowed in the window */
   limit: number;

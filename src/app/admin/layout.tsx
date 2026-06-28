@@ -17,6 +17,7 @@ import {
   HeartHandshake,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { logger } from "@/lib/logger";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -58,8 +59,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
 
         setAuthorized(true);
-      } catch (err) {
-        console.error("Auth verification failed", err);
+      } catch (err: any) {
+        logger.error("Auth verification failed", err);
         router.push("/login");
       }
     };

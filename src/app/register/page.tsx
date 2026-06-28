@@ -8,6 +8,7 @@ import { isLoggedIn } from "@/lib/auth";
 import { registerUser } from "@/lib/api";
 import { ArrowLeft, CheckCircle2, UserPlus, HeartHandshake, PhoneCall, Mail, Lock, Phone, Droplets, MapPin, Eye, EyeOff } from "lucide-react";
 import { PremiumSelect } from "@/components/ui/PremiumSelect";
+import { logger } from "@/lib/logger";
 
 function RegisterForm() {
   const router = useRouter();
@@ -80,7 +81,7 @@ function RegisterForm() {
           setIsLocating(false);
         },
         (error) => {
-          console.error("Geolocation error:", error);
+          logger.error("Geolocation error:", error);
           setFormError("Could not fetch location. You can continue without it.");
           setIsLocating(false);
         },

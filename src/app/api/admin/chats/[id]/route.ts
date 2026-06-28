@@ -1,11 +1,17 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { ChatHistory } from "@/lib/models/ChatHistory";
 import { requireAdmin } from "@/lib/middleware/auth";
+import { logger } from "@/lib/logger";
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -22,7 +28,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ message: "Chat log deleted successfully." });
   } catch (err) {
-    console.error("[DELETE /api/admin/chats/[id]]", err);
+    logger.error("[DELETE /api/admin/chats/[id]]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

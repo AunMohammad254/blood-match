@@ -23,6 +23,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { PremiumSelect } from "@/components/ui/PremiumSelect";
+import { logger } from "@/lib/logger";
 
 function ShareSuite() {
   const searchParams = useSearchParams();
@@ -52,8 +53,8 @@ function ShareSuite() {
       } else if (data.length > 0) {
         setSelectedRequest(data[0]);
       }
-    } catch (err) {
-      console.error("Failed to load requests for sharing", err);
+    } catch (err: any) {
+      logger.error("Failed to load requests for sharing", err);
     } finally {
       setIsLoading(false);
     }
@@ -110,8 +111,8 @@ function ShareSuite() {
           text: `Urgent blood required (${req.bloodType}) for ${req.patientName} at ${req.hospital}, ${req.city}.`,
           url: shareUrl,
         });
-      } catch (err) {
-        console.log("Native share cancelled or failed", err);
+      } catch (err: any) {
+        logger.info("Native share cancelled or failed", err);
       }
     } else {
       alert("Mobile system share is not supported on this device/browser. Please copy the link or WhatsApp text!");

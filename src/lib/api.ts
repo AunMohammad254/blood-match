@@ -27,9 +27,24 @@ api.interceptors.response.use(
   }
 );
 
+interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  bloodType: BloodType;
+  city: string;
+  role: string;
+}
+
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
 // Auth
-export const registerUser = (data: any) => api.post("/auth/register", data);
-export const loginUser = (data: any) => api.post("/auth/login", data);
+export const registerUser = (data: RegisterPayload) => api.post("/auth/register", data);
+export const loginUser = (data: LoginPayload) => api.post("/auth/login", data);
 
 // Donors
 export const getDonors = (params?: { bloodType?: string; city?: string }) => api.get("/donors", { params });
@@ -38,7 +53,17 @@ export const toggleAvailability = (isAvailable: boolean) => api.patch("/donors/a
 // Requests
 export const getRequests = (params?: { city?: string; bloodType?: string; status?: string; mine?: boolean; acceptedByMe?: boolean }) => 
   api.get("/requests", { params });
-export const createRequest = (data: any) => api.post("/requests", data);
+interface CreateRequestPayload {
+  patientName: string;
+  bloodType: BloodType;
+  units: number;
+  hospital: string;
+  city: string;
+  urgency: "normal" | "urgent" | "critical";
+  contactPhone: string;
+}
+
+export const createRequest = (data: CreateRequestPayload) => api.post("/requests", data);
 export const cancelRequest = (id: string) => api.patch(`/requests/${id}/cancel`);
 export const respondToRequest = (id: string, action: "accept" | "decline") => api.patch(`/requests/${id}/respond`, { action });
 export const reportRequest = (id: string) => api.post(`/requests/${id}/report`);

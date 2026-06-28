@@ -10,6 +10,7 @@ interface Notification {
 }
 
 import { getToken } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 export const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -33,8 +34,8 @@ export const NotificationBell: React.FC = () => {
         const data = await res.json();
         setNotifications(data.notifications || []);
       }
-    } catch (err) {
-      console.error("Failed to fetch notifications");
+    } catch (err: any) {
+      logger.error("Failed to fetch notifications");
     }
   };
 
@@ -66,8 +67,8 @@ export const NotificationBell: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-    } catch (err) {
-      console.error("Failed to mark all as read");
+    } catch (err: any) {
+      logger.error("Failed to mark all as read");
     } finally {
       setLoading(false);
     }

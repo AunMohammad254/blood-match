@@ -1,17 +1,24 @@
 import mongoose from "mongoose";
+import { logger } from "@/lib/logger";
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
 // If MONGODB_URI is not defined, we operate in in-memory fallback mode
 
 
-// Cache the connection across hot-reloads in development
-let cached = (global as any).__mongoose ?? { conn: null, promise: null };
-(global as any).__mongoose = cached;
+declare global {
+  var __mongoose: {
+    conn: typeof mongoose | null;
+    promise: Promise<typeof mongoose> | null;
+  } | undefined;
+}
+
+let cached = global.__mongoose ?? { conn: null, promise: null };
+global.__mongoose = cached;
 
 export async function connectDB(): Promise<typeof mongoose> {
   if (!MONGODB_URI) {
-    console.warn("MONGODB_URI is not defined. Operating in Autonomous In-Memory mode.");
+    logger.warn("MONGODB_URI is not defined. Operating in Autonomous In-Memory mode.");
     return mongoose;
   }
 
@@ -20,7 +27,7 @@ export async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
       minPoolSize: 2,
@@ -29,8 +36,9 @@ export async function connectDB(): Promise<typeof mongoose> {
 
   try {
     cached.conn = await cached.promise;
-  } catch (err) {
+  } catch (err: any) {
     cached.promise = null;
+    console.error("MongoDB connection failed. If you don't have a valid MongoDB cluster, remove MONGODB_URI from your .env file to use in-memory fallback.");
     throw err;
   }
 

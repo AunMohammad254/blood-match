@@ -8,6 +8,7 @@ import {
   PlusCircle, Activity, ArrowLeft,
 } from "lucide-react";
 import { getToken, isLoggedIn } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 /* ─── Types ─────────────────────────────────────────────────────── */
 interface Message {
@@ -125,8 +126,8 @@ export default function AiChatBot() {
         const data = await res.json();
         setHistoryList(data.histories || []);
       }
-    } catch (err) {
-      console.error("Failed to fetch chat history:", err);
+    } catch (err: any) {
+      logger.error("Failed to fetch chat history:", err);
     } finally {
       setIsHistoryLoading(false);
     }
@@ -172,8 +173,8 @@ export default function AiChatBot() {
         setMessages([WELCOME]);
         setChatSessionId(null);
       }
-    } catch (err) {
-      console.error("Failed to load session:", err);
+    } catch (err: any) {
+      logger.error("Failed to load session:", err);
       setMessages([WELCOME]);
       setChatSessionId(null);
     } finally {
@@ -194,8 +195,8 @@ export default function AiChatBot() {
         setHistoryList((prev) => prev.filter((s) => s._id !== sessionId));
         if (chatSessionId === sessionId) startNewChat();
       }
-    } catch (err) {
-      console.error("Failed to delete session:", err);
+    } catch (err: any) {
+      logger.error("Failed to delete session:", err);
     } finally {
       setDeletingId(null);
     }

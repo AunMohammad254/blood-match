@@ -1,11 +1,17 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { ChatRequestLog } from "@/lib/models/ChatRequestLog";
 import { requireAdmin } from "@/lib/middleware/auth";
+import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -36,8 +42,8 @@ export async function GET(req: Request) {
     ]);
 
     return NextResponse.json({ logs, total, page, limit });
-  } catch (err) {
-    console.error("[GET /api/admin/logs]", err);
+  } catch (err: any) {
+    logger.error("[GET /api/admin/logs]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

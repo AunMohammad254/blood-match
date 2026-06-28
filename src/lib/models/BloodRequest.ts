@@ -43,10 +43,11 @@ const BloodRequestSchema = new Schema<IBloodRequest>(
 );
 
 // Indexes for common query patterns
-BloodRequestSchema.index({ status: 1, createdAt: -1 });
-BloodRequestSchema.index({ bloodType: 1, city: 1, status: 1 });
+BloodRequestSchema.index({ status: 1, urgency: 1, createdAt: -1 });
+BloodRequestSchema.index({ city: 1, bloodType: 1, status: 1 });
 BloodRequestSchema.index({ requestedBy: 1, status: 1 });
-BloodRequestSchema.index({ city: 1, urgency: -1, createdAt: -1 });
+BloodRequestSchema.index({ matchedDonor: 1 });
+BloodRequestSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Auto-cleanup expired
 
 import { BloodRequestMemoryModel } from "@/lib/db/memoryStore";
 

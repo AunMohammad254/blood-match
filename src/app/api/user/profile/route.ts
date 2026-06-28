@@ -1,10 +1,17 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { invalidateCache } from "@/lib/cache";
+import { logger } from "@/lib/logger";
+import { UpdateProfileSchema } from "@/lib/validation/schemas";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     await connectDB();
     const decoded = verifyAuth(req);
@@ -32,13 +39,13 @@ export async function GET(req: Request) {
         createdAt: user.createdAt
       }
     });
-  } catch (err) {
-    console.error("[GET_/api/user/profile]", err);
+  } catch (err: any) {
+    logger.error("[GET_/api/user/profile]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
 
-export async function PATCH(req: Request) {
+export async function PATCH(req: Request): Promise<Response> {
   try {
     await connectDB();
     const decoded = verifyAuth(req);
@@ -48,19 +55,21 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { name, phone, city, lastDonatedAt } = body;
-
-    // Validation
-    if (name && (name.trim().length < 2 || name.trim().length > 60)) {
-      return NextResponse.json({ error: "Name must be between 2 and 60 characters." }, { status: 400 });
+    const validationResult = UpdateProfileSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed", 
+          details: validationResult.error.flatten().fieldErrors 
+        }, 
+        { status: 400 }
+      );
     }
 
-    const phoneRegex = /^\d{10,}$/;
-    if (phone && !phoneRegex.test(phone.trim())) {
-      return NextResponse.json({ error: "Phone must be at least 10 digits." }, { status: 400 });
-    }
+    const { name, phone, city, lastDonatedAt } = validationResult.data;
 
-    const updateData: any = {};
+    const updateData: Record<string, any> = {};
     if (name) updateData.name = name.trim();
     if (phone) updateData.phone = phone.trim();
     if (city) updateData.city = city.trim();
@@ -95,13 +104,13 @@ export async function PATCH(req: Request) {
       },
       { status: 200 }
     );
-  } catch (err) {
-    console.error("[PATCH_/api/user/profile]", err);
+  } catch (err: any) {
+    logger.error("[PATCH_/api/user/profile]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: Request): Promise<Response> {
   try {
     await connectDB();
     const decoded = verifyAuth(req);
@@ -121,8 +130,8 @@ export async function DELETE(req: Request) {
     invalidateCache("donors");
 
     return NextResponse.json({ message: "Account deleted successfully." }, { status: 200 });
-  } catch (err) {
-    console.error("[DELETE_/api/user/profile]", err);
+  } catch (err: any) {
+    logger.error("[DELETE_/api/user/profile]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

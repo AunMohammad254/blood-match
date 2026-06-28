@@ -1,4 +1,4 @@
-import { BloodType, COMPATIBILITY_MAP } from "./constants";
+import { BloodType, COMPATIBILITY_MAP } from "@/lib/constants";
 
 /**
  * Given a recipient's blood type,

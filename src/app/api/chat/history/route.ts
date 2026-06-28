@@ -1,11 +1,17 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { ChatHistory } from "@/lib/models/ChatHistory";
+import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     await connectDB();
     const decoded = verifyAuth(req);
@@ -33,12 +39,12 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ histories });
   } catch (err: any) {
-    console.error("[GET /api/chat/history]", err);
+    logger.error("[GET /api/chat/history]", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: Request): Promise<Response> {
   try {
     await connectDB();
     const decoded = verifyAuth(req);
@@ -60,7 +66,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("[DELETE /api/chat/history]", err);
+    logger.error("[DELETE /api/chat/history]", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

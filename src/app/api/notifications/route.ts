@@ -1,10 +1,16 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { getNotifications, markAllAsRead } from "@/lib/db/notifications";
+import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     const user = verifyAuth(req);
     if (!user) {
@@ -13,13 +19,13 @@ export async function GET(req: Request) {
 
     const notifications = getNotifications(user.userId);
     return NextResponse.json({ notifications }, { status: 200 });
-  } catch (err) {
-    console.error("[GET /api/notifications]", err);
+  } catch (err: any) {
+    logger.error("[GET /api/notifications]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
 
-export async function PATCH(req: Request) {
+export async function PATCH(req: Request): Promise<Response> {
   try {
     const user = verifyAuth(req);
     if (!user) {
@@ -28,8 +34,8 @@ export async function PATCH(req: Request) {
 
     markAllAsRead(user.userId);
     return NextResponse.json({ message: "All notifications marked as read." }, { status: 200 });
-  } catch (err) {
-    console.error("[PATCH /api/notifications]", err);
+  } catch (err: any) {
+    logger.error("[PATCH /api/notifications]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

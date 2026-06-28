@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import { logger } from "@/lib/logger";
 
 // Initialize Twilio client if credentials exist
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -11,26 +12,29 @@ export async function sendSMS(to: string, message: string) {
   // If Twilio is configured, try to send real SMS
   if (client && fromNumber) {
     try {
-      const response = await client.messages.create({
+      // Fire-and-forget: we don't await this so it doesn't block API responses
+      client.messages.create({
         body: message,
         from: fromNumber,
         to: to,
+      }).then(response => {
+        logger.info(`[Twilio SMS] Sent to ${to}: ${response.sid}`);
+      }).catch(error => {
+        logger.error(`[Twilio SMS Error] Failed to send SMS to ${to}:`, error);
+        logger.info(`[Mock SMS Fallback] To: ${to} | Message: ${message}`);
       });
-      console.log(`[Twilio SMS] Sent to ${to}: ${response.sid}`);
-      return { success: true, provider: 'twilio' };
-    } catch (error: any) {
-      console.error(`[Twilio SMS Error] Failed to send SMS to ${to}:`, error);
-      // Fallback to mock SMS if Twilio fails (e.g. unverified number in trial)
-      console.log(`[Mock SMS Fallback] To: ${to} | Message: ${message}`);
+      return { success: true, provider: 'twilio-queued' };
+    } catch (error) {
+      logger.error(`[Twilio Setup Error] Failed to queue SMS for ${to}:`, error);
       return { success: true, provider: 'mock (fallback)' };
     }
   }
 
   // Default to mock SMS for hackathon/development
-  console.log('==================================================');
-  console.log(`[MOCK SMS] To: ${to}`);
-  console.log(`[MOCK SMS] Message: ${message}`);
-  console.log('==================================================');
+  logger.info('==================================================');
+  logger.info(`[MOCK SMS] To: ${to}`);
+  logger.info(`[MOCK SMS] Message: ${message}`);
+  logger.info('==================================================');
   
   return { success: true, provider: 'mock' };
 }

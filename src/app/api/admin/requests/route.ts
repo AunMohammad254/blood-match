@@ -1,3 +1,8 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
@@ -7,6 +12,7 @@ import { requireAdmin } from "@/lib/middleware/auth";
 import { z } from "zod";
 import { BLOOD_TYPES, URGENCY_LEVELS } from "@/lib/constants";
 import { invalidateCache } from "@/lib/cache";
+import { logger } from "@/lib/logger";
 
 const CreateRequestSchema = z.object({
   patientName: z.string().min(2, "Patient name must be at least 2 characters."),
@@ -22,7 +28,7 @@ const CreateRequestSchema = z.object({
 });
 
 // GET — List blood requests
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -63,14 +69,14 @@ export async function GET(req: Request) {
     ]);
 
     return NextResponse.json({ requests, total, page, limit });
-  } catch (err) {
-    console.error("[GET /api/admin/requests]", err);
+  } catch (err: any) {
+    logger.error("[GET /api/admin/requests]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
 
 // POST — Create blood request
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -96,8 +102,8 @@ export async function POST(req: Request) {
     invalidateCache("requests");
 
     return NextResponse.json({ message: "Blood request created successfully.", request: newRequest }, { status: 201 });
-  } catch (err) {
-    console.error("[POST /api/admin/requests]", err);
+  } catch (err: any) {
+    logger.error("[POST /api/admin/requests]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

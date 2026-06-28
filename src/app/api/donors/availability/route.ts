@@ -1,10 +1,21 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { invalidateCache } from "@/lib/cache";
+import { logger } from "@/lib/logger";
+import { z } from "zod";
 
-export async function PATCH(req: Request) {
+const UpdateAvailabilitySchema = z.object({
+  isAvailable: z.boolean()
+});
+
+export async function PATCH(req: Request): Promise<Response> {
   try {
     await connectDB();
     const user = verifyAuth(req);
@@ -18,11 +29,13 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { isAvailable } = body;
-
-    if (typeof isAvailable !== "boolean") {
+    const validationResult = UpdateAvailabilitySchema.safeParse(body);
+    
+    if (!validationResult.success) {
       return NextResponse.json({ error: "isAvailable must be a boolean." }, { status: 400 });
     }
+
+    const { isAvailable } = validationResult.data;
 
     const updatedUser = await User.findByIdAndUpdate(
       user.userId,
@@ -43,8 +56,8 @@ export async function PATCH(req: Request) {
       },
       { status: 200 }
     );
-  } catch (err) {
-    console.error("[PATCH_/api/donors/availability]", err);
+  } catch (err: any) {
+    logger.error("[PATCH_/api/donors/availability]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

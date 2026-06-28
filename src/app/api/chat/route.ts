@@ -1,3 +1,8 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
@@ -6,6 +11,7 @@ import { verifyAuth } from "@/lib/middleware/auth";
 import { ChatHistory } from "@/lib/models/ChatHistory";
 import fs from "fs";
 import path from "path";
+import { logger } from "@/lib/logger";
 
 let cachedGraph: any = null;
 
@@ -71,8 +77,8 @@ function getGraphContext(queryText: string): string {
     }
 
     return contextStr;
-  } catch (err) {
-    console.error("[getGraphContext] Error:", err);
+  } catch (err: any) {
+    logger.error("[getGraphContext] Error:", err);
     return "";
   }
 }
@@ -110,7 +116,7 @@ Keep responses short unless the user asks for detailed information.`;
 
 let genAIInstance: GoogleGenerativeAI | null = null;
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const { messages, chatSessionId } = await req.json();
 
@@ -179,13 +185,13 @@ export async function POST(req: Request) {
       ]);
 
       if (rpmCount >= modelCfg.rpm) {
-        console.warn(`[POST /api/chat] RPM limit hit for ${modelCfg.id} by IP ${ip}`);
+        logger.warn(`[POST /api/chat] RPM limit hit for ${modelCfg.id} by IP ${ip}`);
         rateLimitMessage = `You've reached the ${modelCfg.rpm} requests per minute limit for our AI models. Please wait a moment.`;
         continue;
       }
 
       if (rpdCount >= modelCfg.rpd) {
-        console.warn(`[POST /api/chat] RPD limit hit for ${modelCfg.id} by IP ${ip}`);
+        logger.warn(`[POST /api/chat] RPD limit hit for ${modelCfg.id} by IP ${ip}`);
         rateLimitMessage = `You've reached the daily limit of ${modelCfg.rpd} requests for this AI model.`;
         continue;
       }
@@ -282,7 +288,7 @@ export async function POST(req: Request) {
         responseSent = true;
         break;
       } catch (err: any) {
-        console.warn(`[POST /api/chat] Model ${modelCfg.id} fallback: ${err.message || err}`);
+        logger.warn(`[POST /api/chat] Model ${modelCfg.id} fallback: ${err.message || err}`);
         lastError = err;
       }
     }
@@ -314,7 +320,7 @@ export async function POST(req: Request) {
             savedSessionId = newSession._id.toString();
           }
         } catch (dbErr) {
-          console.error("[POST /api/chat] History error:", dbErr);
+          logger.error("[POST /api/chat] History error:", dbErr);
         }
       }
       return NextResponse.json({ reply: finalReply, action: finalAction, model: finalModel, chatSessionId: savedSessionId });
@@ -326,7 +332,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ error: "AI service error. Please try again later." }, { status: 500 });
   } catch (err: any) {
-    console.error("[POST /api/chat] Critical error:", err.message || err);
+    logger.error("[POST /api/chat] Critical error:", err.message || err);
     return NextResponse.json({ error: "Server error. Please try again." }, { status: 500 });
   }
 }

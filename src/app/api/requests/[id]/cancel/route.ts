@@ -1,13 +1,19 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { BloodRequest } from "@/lib/models/BloodRequest";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { invalidateCache } from "@/lib/cache";
+import { logger } from "@/lib/logger";
 
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   try {
     await connectDB();
     const user = verifyAuth(req);
@@ -44,7 +50,7 @@ export async function PATCH(
 
     return NextResponse.json({ message: "Request cancelled." }, { status: 200 });
   } catch (err) {
-    console.error("[PATCH_/api/requests/[id]/cancel]", err);
+    logger.error("[PATCH_/api/requests/[id]/cancel]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

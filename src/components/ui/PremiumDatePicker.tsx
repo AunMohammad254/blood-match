@@ -4,7 +4,6 @@ import React, { forwardRef } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar } from "lucide-react";
-import { format } from "date-fns";
 
 interface PremiumDatePickerProps {
   selected: Date | null;
@@ -19,7 +18,7 @@ export function PremiumDatePicker({
   placeholderText = "Select a date",
   className = "",
 }: PremiumDatePickerProps) {
-  const CustomInput = forwardRef<HTMLButtonElement, any>(({ value, onClick, placeholder }, ref) => (
+  const CustomInput = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { value?: string; placeholder?: string }>(({ value, onClick, placeholder }, ref) => (
     <button
       type="button"
       className={`w-full bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border-2 border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between text-left transition-all duration-200 hover:border-red-300 dark:hover:border-red-900/50 focus:ring-2 focus:ring-red-500/50 ${className}`}

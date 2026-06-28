@@ -1,5 +1,22 @@
 import { COMPATIBILITY_MAP } from "@/lib/constants";
 
+/**
+ * @file memoryStore.ts
+ * 
+ * LIMITATIONS & DOCUMENTATION:
+ * This is an autonomous in-memory store used as a fallback when MongoDB is unavailable.
+ * It is primarily designed for Hackathon prototyping and local development.
+ * 
+ * Known Limitations:
+ * 1. Data Volatility: All data is lost when the Next.js development server restarts.
+ * 2. Serverless Environments: In Vercel or other serverless edge environments, this memory state 
+ *    will NOT be shared across requests or edge nodes. Each lambda cold start gets a fresh copy.
+ * 3. Query Engine: The MockQuery class only supports a subset of Mongoose features. Complex aggregations,
+ *    deep population, and advanced filter operators ($elemMatch, etc.) are minimally mocked.
+ * 
+ * @ts-expect-error - The mock query builder does not strictly adhere to the complex Mongoose types.
+ */
+
 export interface MockUser {
   _id: string;
   name: string;

@@ -1,3 +1,8 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
@@ -7,6 +12,7 @@ import { requireAdmin } from "@/lib/middleware/auth";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { BLOOD_TYPES } from "@/lib/constants";
+import { logger } from "@/lib/logger";
 
 const UpdateUserSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").optional(),
@@ -20,7 +26,7 @@ const UpdateUserSchema = z.object({
 });
 
 // PATCH — Update user (full profile, toggle availability, change role, reset password)
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -68,13 +74,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     return NextResponse.json({ message: "User updated successfully.", user: userObj });
   } catch (err) {
-    console.error("[PATCH /api/admin/users/[id]]", err);
+    logger.error("[PATCH /api/admin/users/[id]]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
 
 // DELETE — Remove a user account
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -96,7 +102,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ message: "User deleted successfully." });
   } catch (err) {
-    console.error("[DELETE /api/admin/users/[id]]", err);
+    logger.error("[DELETE /api/admin/users/[id]]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

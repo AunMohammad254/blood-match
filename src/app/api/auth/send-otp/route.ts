@@ -1,12 +1,26 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
 import { User } from "@/lib/models/User";
 import { connectDB } from "@/lib/db/connect";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { sendSMS } from "@/lib/sms";
 import crypto from "crypto";
+import { logger } from "@/lib/logger";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<Response> {
   try {
+    const rl = checkRateLimit(getIdentifier(req) + "_send_otp", { limit: 5, windowMs: 60 * 60 * 1000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } }
+      );
+    }
     await connectDB();
     const decoded = await verifyAuth(req);
     if (!decoded) {
@@ -39,8 +53,8 @@ export async function POST(req: NextRequest) {
       message: "OTP sent successfully",
       provider: smsResult.provider
     });
-  } catch (error: any) {
-    console.error("Send OTP Error:", error);
+  } catch (error) {
+    logger.error("Send OTP Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

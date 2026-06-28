@@ -1,3 +1,8 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
@@ -6,8 +11,9 @@ import { User } from "@/lib/models/User";
 import { BloodRequest } from "@/lib/models/BloodRequest";
 import { ChatHistory } from "@/lib/models/ChatHistory";
 import { requireAdmin } from "@/lib/middleware/auth";
+import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -101,8 +107,8 @@ export async function GET(req: Request) {
       totalChatMessages,
       recentChats,
     });
-  } catch (err) {
-    console.error("[GET /api/admin/stats]", err);
+  } catch (err: any) {
+    logger.error("[GET /api/admin/stats]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

@@ -1,12 +1,19 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
+import { LoginSchema } from "@/lib/validation/schemas";
+import { config } from "@/lib/config";
+import { logger } from "@/lib/logger";
 
-
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     // Rate limit: 5 attempts per 15 minutes per IP
     const rl = checkRateLimit(getIdentifier(req), { limit: 5, windowMs: 15 * 60 * 1000 });
@@ -19,12 +26,19 @@ export async function POST(req: Request) {
 
     await connectDB();
     const body = await req.json();
-    const { email, password } = body;
 
-
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password required." }, { status: 400 });
+    const validationResult = LoginSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed", 
+          details: validationResult.error.flatten().fieldErrors 
+        }, 
+        { status: 400 }
+      );
     }
+
+    const { email, password } = validationResult.data;
 
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
@@ -36,14 +50,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials." }, { status: 401 });
     }
 
-    const secret = process.env.JWT_SECRET || "a_long_random_secret_string_minimum_32_chars";
     const token = jwt.sign(
       {
         userId: user._id.toString(),
         role: user.role,
         bloodType: user.bloodType
       },
-      secret,
+      config.jwtSecret,
       { expiresIn: "7d" }
     );
 
@@ -65,8 +78,8 @@ export async function POST(req: Request) {
       },
       { status: 200 }
     );
-  } catch (err) {
-    console.error("[POST_/api/auth/login]", err);
+  } catch (err: any) {
+    logger.error("[POST_/api/auth/login]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

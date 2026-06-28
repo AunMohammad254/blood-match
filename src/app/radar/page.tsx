@@ -25,6 +25,7 @@ import {
   Check
 } from "lucide-react";
 import { PremiumSelect } from "@/components/ui/PremiumSelect";
+import { logger } from "@/lib/logger";
 
 // Interface for simulated plotted donor with coordinates
 interface PlottedDonor extends Donor {
@@ -118,8 +119,8 @@ export default function RadarPage() {
       mapped.sort((a, b) => a.distanceKm - b.distanceKm);
       setPlottedDonors(mapped);
       if (mapped.length > 0) setSelectedDonor(mapped[0]);
-    } catch (err) {
-      console.error("Failed to fetch radar logistics data", err);
+    } catch (err: any) {
+      logger.error("Failed to fetch radar logistics data", err);
     } finally {
       setIsLoading(false);
     }

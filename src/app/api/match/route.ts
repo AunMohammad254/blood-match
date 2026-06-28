@@ -1,14 +1,21 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
-import { getCompatibleDonorTypes } from "@/lib/compatibility";
+import { getCompatibleDonorTypes } from "@/services/compatibility";
 import { BloodType, BLOOD_TYPES } from "@/lib/constants";
 import { FilterQuery } from "mongoose";
 import { verifyAuth } from "@/lib/middleware/auth";
+import { handleETag } from "@/lib/etag";
+import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
@@ -85,7 +92,8 @@ export async function GET(req: Request) {
       dbQuery = dbQuery.sort({ createdAt: 1 });
     }
 
-    let donors = (await dbQuery.lean()) as any[];
+    const MAX_MATCH_RESULTS = 50;
+    let donors = (await dbQuery.limit(MAX_MATCH_RESULTS).lean()) as any[];
 
     // Calculate match score
     const now = Date.now();
@@ -112,17 +120,19 @@ export async function GET(req: Request) {
       donors.sort((a, b) => b.matchScore - a.matchScore);
     }
 
-    return NextResponse.json(
-      {
-        requested: bloodType,
-        compatibleTypes,
-        totalMatches: donors.length,
-        donors
-      },
-      { status: 200 }
-    );
-  } catch (err) {
-    console.error("[GET_/api/match]", err);
+    const resultPayload = {
+      requested: bloodType,
+      compatibleTypes,
+      totalMatches: donors.length,
+      donors
+    };
+
+    const { response, headers } = handleETag(req, resultPayload);
+    if (response) return response;
+
+    return NextResponse.json(resultPayload, { status: 200, headers });
+  } catch (err: any) {
+    logger.error("[GET_/api/match]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

@@ -24,10 +24,17 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
-    name: { type: String, required: true, trim: true },
+    name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
-    phone: { type: String, required: true },
+    phone: { 
+      type: String, 
+      required: true,
+      validate: {
+        validator: (v: string) => /^[0-9]{10,15}$/.test(v),
+        message: 'Invalid phone number format'
+      }
+    },
     bloodType: { type: String, required: true, enum: BLOOD_TYPES },
     city: { type: String, required: true, trim: true },
     role: { type: String, required: true, enum: ROLES, default: "donor" },
@@ -46,8 +53,7 @@ const UserSchema = new Schema<IUser>(
 
 // Indexes for fast filtering
 UserSchema.index({ bloodType: 1, city: 1 });
-UserSchema.index({ role: 1, isAvailable: 1 });
-UserSchema.index({ city: 1, bloodType: 1, isAvailable: 1 });
+UserSchema.index({ role: 1, isAvailable: 1, bloodType: 1, city: 1 });
 UserSchema.index({ isAvailable: 1, lastDonatedAt: -1 });
 UserSchema.index({ verificationOtpExpiry: 1 }, { expireAfterSeconds: 0 }); // Auto cleanup expired OTPs
 UserSchema.index({ location: '2dsphere' });

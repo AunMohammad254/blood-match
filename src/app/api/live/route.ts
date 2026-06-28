@@ -1,9 +1,16 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
+import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { BloodRequest } from "@/lib/models/BloodRequest";
+import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -37,8 +44,8 @@ export async function GET(req: Request) {
           } else {
             sendEvent({ type: "ping" });
           }
-        } catch (err) {
-          console.error("SSE interval error:", err);
+        } catch (err: any) {
+          logger.error("SSE interval error:", err);
           sendEvent({ type: "error", message: "Database query failed" });
         }
       }, 10000); // Check every 10 seconds

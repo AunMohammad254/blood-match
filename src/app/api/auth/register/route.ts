@@ -1,14 +1,20 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import bcrypt from "bcryptjs";
-import { BLOOD_TYPES } from "@/lib/constants";
 import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
+import { RegisterSchema } from "@/lib/validation/schemas";
+import { logger } from "@/lib/logger";
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
-    // Rate limit: 10 registrations per hour per IP
-    const rl = checkRateLimit(getIdentifier(req), { limit: 10, windowMs: 60 * 60 * 1000 });
+    // Rate limit: 3 attempts per hour per IP
+    const rl = checkRateLimit(getIdentifier(req), { limit: 3, windowMs: 60 * 60 * 1000 });
     if (!rl.allowed) {
       return NextResponse.json(
         { error: "Too many registration attempts. Please try again later." },
@@ -18,37 +24,20 @@ export async function POST(req: Request) {
 
     await connectDB();
     const body = await req.json();
-    const { name, email, password, phone, bloodType, city, role, location } = body;
 
-    if (!name || !email || !password || !phone || !bloodType || !city || !role) {
-      return NextResponse.json({ error: "All fields are required." }, { status: 400 });
+    const validationResult = RegisterSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { 
+          error: "Validation failed", 
+          details: validationResult.error.flatten().fieldErrors 
+        }, 
+        { status: 400 }
+      );
     }
 
-    if (name.trim().length < 2 || name.trim().length > 60) {
-      return NextResponse.json({ error: "Name must be between 2 and 60 characters." }, { status: 400 });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Invalid email format." }, { status: 400 });
-    }
-
-    if (password.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters." }, { status: 400 });
-    }
-
-    const phoneRegex = /^\d{10,}$/;
-    if (!phoneRegex.test(phone.trim())) {
-      return NextResponse.json({ error: "Phone must be at least 10 digits." }, { status: 400 });
-    }
-
-    if (!BLOOD_TYPES.includes(bloodType)) {
-      return NextResponse.json({ error: "Invalid blood type." }, { status: 400 });
-    }
-
-    if (role !== "donor" && role !== "recipient") {
-      return NextResponse.json({ error: "Role must be donor or recipient." }, { status: 400 });
-    }
+    const { name, email, password, phone, bloodType, city, role } = validationResult.data;
+    const location = body.location; // extract location if provided
 
     const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
@@ -75,8 +64,8 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (err) {
-    console.error("[POST_/api/auth/register]", err);
+  } catch (err: any) {
+    logger.error("[POST_/api/auth/register]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

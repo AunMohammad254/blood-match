@@ -1,16 +1,22 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
-import { getCompatibleDonorTypes } from "@/lib/compatibility";
+import { getCompatibleDonorTypes } from "@/services/compatibility";
 import { BloodType, BLOOD_TYPES } from "@/lib/constants";
 import { FilterQuery } from "mongoose";
 import { getCache, setCache } from "@/lib/cache";
 import { handleETag } from "@/lib/etag";
 import { verifyAuth } from "@/lib/middleware/auth";
+import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
@@ -80,8 +86,8 @@ export async function GET(req: Request) {
     if (response) return response;
 
     return NextResponse.json(resultPayload, { status: 200, headers });
-  } catch (err) {
-    console.error("[GET_/api/donors]", err);
+  } catch (err: any) {
+    logger.error("[GET_/api/donors]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

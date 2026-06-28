@@ -1,10 +1,16 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { DonationRecord } from "@/lib/models/DonationRecord";
 import { User } from "@/lib/models/User";
 import { verifyAuth } from "@/lib/middleware/auth";
+import { logger } from "@/lib/logger";
 
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     await connectDB();
     const user = verifyAuth(req);
@@ -13,13 +19,13 @@ export async function GET(req: Request) {
     const records = await DonationRecord.find({ donorId: user.userId }).sort({ donatedAt: -1 }).lean();
     
     return NextResponse.json({ records }, { status: 200 });
-  } catch (err) {
-    console.error("[GET_/api/donors/history]", err);
+  } catch (err: any) {
+    logger.error("[GET_/api/donors/history]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     await connectDB();
     const user = verifyAuth(req);
@@ -44,8 +50,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ message: "Donation logged successfully", record }, { status: 201 });
-  } catch (err) {
-    console.error("[POST_/api/donors/history]", err);
+  } catch (err: any) {
+    logger.error("[POST_/api/donors/history]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

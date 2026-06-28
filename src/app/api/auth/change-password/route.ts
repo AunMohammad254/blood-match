@@ -1,11 +1,17 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import { verifyAuth } from "@/lib/middleware/auth";
 import bcrypt from "bcryptjs";
 import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
+import { logger } from "@/lib/logger";
 
-export async function PATCH(req: Request) {
+export async function PATCH(req: Request): Promise<Response> {
   try {
     // Rate limit: 5 attempts per 15 minutes per IP
     const rl = checkRateLimit(getIdentifier(req), { limit: 5, windowMs: 15 * 60 * 1000 });
@@ -52,8 +58,8 @@ export async function PATCH(req: Request) {
       { message: "Password updated successfully." },
       { status: 200 }
     );
-  } catch (err) {
-    console.error("[PATCH_/api/auth/change-password]", err);
+  } catch (err: any) {
+    logger.error("[PATCH_/api/auth/change-password]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

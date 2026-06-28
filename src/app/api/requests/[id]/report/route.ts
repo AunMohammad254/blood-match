@@ -1,3 +1,8 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
@@ -5,11 +10,12 @@ import { connectDB } from "@/lib/db/connect";
 import { BloodRequest } from "@/lib/models/BloodRequest";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { invalidateCache } from "@/lib/cache";
+import { logger } from "@/lib/logger";
 
 export async function POST(
   req: Request,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   try {
     await connectDB();
     const user = verifyAuth(req);
@@ -41,7 +47,7 @@ export async function POST(
 
     return NextResponse.json({ message: "Request reported successfully.", reports: request.reports }, { status: 200 });
   } catch (err) {
-    console.error("[POST_/api/requests/[id]/report]", err);
+    logger.error("[POST_/api/requests/[id]/report]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

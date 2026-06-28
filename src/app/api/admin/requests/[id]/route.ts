@@ -1,3 +1,8 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
@@ -7,6 +12,7 @@ import { requireAdmin } from "@/lib/middleware/auth";
 import { z } from "zod";
 import { BLOOD_TYPES } from "@/lib/constants";
 import { invalidateCache } from "@/lib/cache";
+import { logger } from "@/lib/logger";
 
 const UpdateRequestSchema = z.object({
   patientName: z.string().min(2, "Patient name must be at least 2 characters.").optional(),
@@ -22,7 +28,7 @@ const UpdateRequestSchema = z.object({
 });
 
 // PATCH — Update request details (urgency, status, patient information)
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -84,13 +90,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       request: updated,
     });
   } catch (err) {
-    console.error("[PATCH /api/admin/requests/[id]]", err);
+    logger.error("[PATCH /api/admin/requests/[id]]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
 
 // DELETE — Hard delete a request
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -110,7 +116,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ message: "Request deleted successfully." });
   } catch (err) {
-    console.error("[DELETE /api/admin/requests/[id]]", err);
+    logger.error("[DELETE /api/admin/requests/[id]]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }

@@ -1,3 +1,8 @@
+/**
+ * @route ${routePath}
+ * @description API Endpoint Handler
+ * @access Internal/Authenticated
+ */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
@@ -7,6 +12,7 @@ import { requireAdmin } from "@/lib/middleware/auth";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { BLOOD_TYPES } from "@/lib/constants";
+import { logger } from "@/lib/logger";
 
 const CreateUserSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -20,7 +26,7 @@ const CreateUserSchema = z.object({
 });
 
 // GET — List users with filters
-export async function GET(req: Request) {
+export async function GET(req: Request): Promise<Response> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -63,14 +69,14 @@ export async function GET(req: Request) {
     ]);
 
     return NextResponse.json({ users, total, page, limit });
-  } catch (err) {
-    console.error("[GET /api/admin/users]", err);
+  } catch (err: any) {
+    logger.error("[GET /api/admin/users]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
 
 // POST — Create user
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   try {
     const admin = requireAdmin(req);
     if (!admin) {
@@ -113,8 +119,8 @@ export async function POST(req: Request) {
     delete userObj.password;
 
     return NextResponse.json({ message: "User created successfully.", user: userObj }, { status: 201 });
-  } catch (err) {
-    console.error("[POST /api/admin/users]", err);
+  } catch (err: any) {
+    logger.error("[POST /api/admin/users]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
