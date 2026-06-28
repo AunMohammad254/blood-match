@@ -2,7 +2,8 @@
  * Formats a phone number for WhatsApp API
  * Standardizes Pakistan numbers (starting with 0) to include country code 92
  */
-export function formatWhatsAppUrl(phone: string, message?: string): string {
+export function formatWhatsAppUrl(phone: string | undefined, message?: string): string {
+  if (!phone) return "#";
   let cleaned = phone.replace(/\D/g, "");
   
   if (cleaned.startsWith("0")) {
