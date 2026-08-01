@@ -155,6 +155,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. aun@example.com"
               required
+              suppressHydrationWarning
               className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
             />
           </div>
@@ -172,6 +173,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                suppressHydrationWarning
                 className="w-full bg-slate-50/90 dark:bg-slate-800/90 border-2 border-slate-200/80 dark:border-slate-700/80 rounded-2xl px-4 py-3.5 pr-12 text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-500/50 dark:focus:border-red-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
               />
               <button

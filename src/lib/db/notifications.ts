@@ -4,6 +4,7 @@
  * Uses Notification model (MongoDB / memory fallback) and fires background email notifications.
  */
 
+import { connectDB } from "@/lib/db/connect";
 import { Notification } from "@/lib/models/Notification";
 import { User } from "@/lib/models/User";
 import { sendNotificationEmail } from "@/lib/email";
@@ -19,7 +20,8 @@ export interface MockNotification {
 
 export async function getNotifications(userId: string): Promise<MockNotification[]> {
   try {
-    const list = await Notification.find({ userId });
+    await connectDB();
+    const list = await Notification.find({ userId }).sort({ createdAt: -1 }).lean();
     return list.map((n: any) => ({
       _id: n._id.toString(),
       userId: n.userId,
@@ -34,6 +36,7 @@ export async function getNotifications(userId: string): Promise<MockNotification
 }
 
 export async function addNotification(userId: string, message: string): Promise<MockNotification> {
+  await connectDB();
   const notif = await Notification.create({
     userId,
     message,
@@ -43,6 +46,7 @@ export async function addNotification(userId: string, message: string): Promise<
   // Non-blocking fire-and-forget email notification
   (async () => {
     try {
+      await connectDB();
       const recipient = await User.findById(userId);
       if (recipient?.email) {
         await sendNotificationEmail(recipient.email, "New BloodMatch Notification", message);
@@ -63,6 +67,7 @@ export async function addNotification(userId: string, message: string): Promise<
 
 export async function markAsRead(notificationId: string): Promise<void> {
   try {
+    await connectDB();
     await Notification.findByIdAndUpdate(notificationId, { isRead: true });
   } catch (err) {
     logger.error("[markAsRead] Error:", err);
@@ -71,6 +76,7 @@ export async function markAsRead(notificationId: string): Promise<void> {
 
 export async function markAllAsRead(userId: string): Promise<void> {
   try {
+    await connectDB();
     await Notification.updateMany({ userId }, { isRead: true });
   } catch (err) {
     logger.error("[markAllAsRead] Error:", err);
