@@ -64,7 +64,10 @@ export async function PATCH(
     if (action === "accept") {
       const updated = await BloodRequest.findOneAndUpdate(
         { _id: id, status: "open" },
-        { status: "accepted", matchedDonor: user.userId },
+        { 
+          $set: { status: "accepted", matchedDonor: user.userId },
+          $unset: { expiresAt: "" }
+        },
         { new: true }
       );
 

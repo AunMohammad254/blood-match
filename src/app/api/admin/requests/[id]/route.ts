@@ -73,9 +73,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       return NextResponse.json({ error: "No valid fields to update." }, { status: 400 });
     }
 
+    const updateOps: Record<string, any> = { $set: updateData };
+    if (updateData.status && updateData.status !== "open") {
+      updateOps.$unset = { expiresAt: "" };
+    }
+
     const updated = await BloodRequest.findByIdAndUpdate(
       id,
-      { $set: updateData },
+      updateOps,
       { new: true }
     );
 

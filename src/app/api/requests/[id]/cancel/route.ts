@@ -36,15 +36,15 @@ export async function PATCH(
       );
     }
 
-    if (bloodRequest.status !== "open") {
-      return NextResponse.json(
-        { error: "Only open requests can be cancelled." },
-        { status: 400 }
-      );
-    }
+    const updated = await BloodRequest.findOneAndUpdate(
+      { _id: id, requestedBy: user.userId, status: "open" },
+      { $set: { status: "cancelled" }, $unset: { expiresAt: "" } },
+      { new: true }
+    );
 
-    bloodRequest.status = "cancelled";
-    await bloodRequest.save();
+    if (!updated) {
+      return NextResponse.json({ error: "Request not found or cannot be cancelled." }, { status: 400 });
+    }
 
     invalidateCache("requests");
 
