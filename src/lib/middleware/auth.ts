@@ -8,9 +8,22 @@ export interface DecodedToken {
 }
 
 export function verifyAuth(req: Request): DecodedToken | null {
+  let token: string | null = null;
+
   const authHeader = req.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
-  const token = authHeader.replace("Bearer ", "");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.replace("Bearer ", "");
+  } else {
+    try {
+      const { searchParams } = new URL(req.url);
+      token = searchParams.get("token");
+    } catch {
+      token = null;
+    }
+  }
+
+  if (!token) return null;
+
   try {
     return jwt.verify(token, config.jwtSecret) as DecodedToken;
   } catch {

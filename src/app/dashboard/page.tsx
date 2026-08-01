@@ -11,7 +11,7 @@ import { RequestCard } from "@/components/RequestCard";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { RequestCardSkeleton } from "@/components/Skeletons";
 import { EmptyState } from "@/components/EmptyState";
-import { PlusCircle, Search, AlertCircle, RefreshCw, Sparkles, Activity, ShieldCheck, ShieldAlert, HeartHandshake, MapPin } from "lucide-react";
+import { PlusCircle, Search, AlertCircle, RefreshCw, Activity, ShieldCheck, ShieldAlert, HeartHandshake, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 
@@ -21,7 +21,7 @@ export default function DashboardPage() {
   // Donor state
   const [isAvailable, setIsAvailable] = useState(true);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
+
 
   // Shared requests state
   const [requests, setRequests] = useState<RecipientRequest[]>([]);
@@ -49,7 +49,9 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
 
-    const eventSource = new EventSource("/api/live");
+    const token = getToken();
+    const liveUrl = token ? `/api/live?token=${encodeURIComponent(token)}` : "/api/live";
+    const eventSource = new EventSource(liveUrl);
 
     eventSource.onmessage = (event) => {
       try {
@@ -145,7 +147,6 @@ export default function DashboardPage() {
   const handleToggleAvailability = async () => {
     if (!user) return;
     setUpdatingAvailability(true);
-    setStatusMessage("");
 
     const previousState = isAvailable;
     const nextState = !isAvailable;
@@ -156,8 +157,7 @@ export default function DashboardPage() {
 
     try {
       await toggleAvailability(nextState);
-      setStatusMessage("Status updated successfully.");
-      setTimeout(() => setStatusMessage(""), 3500);
+      toast.success("Availability status updated successfully.");
     } catch (err: any) {
       // Rollback on failure
       setIsAvailable(previousState);
@@ -286,12 +286,6 @@ export default function DashboardPage() {
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Your Triage Active Status</h3>
-                  {statusMessage && (
-                    <span className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full font-black animate-fadeIn flex items-center gap-1.5 shadow-inner">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>{statusMessage}</span>
-                    </span>
-                  )}
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-slate-400 font-medium mt-1.5 max-w-xl leading-relaxed">
                   Keep this toggle activated to show up instantly when nearby hospitals execute compatibility triages. Flip off if you travel or medically cannot fulfill requests right now.
