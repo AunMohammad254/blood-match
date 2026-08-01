@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getToken, getUser } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { BLOOD_TYPES, CITIES } from "@/lib/constants";
 import { toast } from "sonner";
 import {
@@ -107,7 +107,7 @@ export default function AdminRequestsPage() {
         search: search,
       });
       const res = await fetch(`/api/admin/requests?${params}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
@@ -128,7 +128,7 @@ export default function AdminRequestsPage() {
     try {
       const res = await fetch("/api/admin/requests", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({
           ...createForm,
           units: Number(createForm.units),
@@ -165,7 +165,7 @@ export default function AdminRequestsPage() {
     try {
       const res = await fetch(`/api/admin/requests/${editRequest._id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({
           ...editForm,
           units: Number(editForm.units),
@@ -189,7 +189,7 @@ export default function AdminRequestsPage() {
     try {
       const res = await fetch(`/api/admin/requests/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ action }),
       });
       const data = await res.json();
@@ -209,7 +209,7 @@ export default function AdminRequestsPage() {
     try {
       const res = await fetch(`/api/admin/requests/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ status: newStatus }),
       });
       const data = await res.json();
@@ -229,7 +229,7 @@ export default function AdminRequestsPage() {
     try {
       const res = await fetch(`/api/admin/requests/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);

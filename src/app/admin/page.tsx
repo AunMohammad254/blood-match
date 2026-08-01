@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { getToken } from "@/lib/auth";
 import { AdminStats } from "@/types";
 import { useTheme } from "next-themes";
 import {
@@ -45,7 +44,7 @@ export default function AdminDashboardPage() {
     setError("");
     try {
       const res = await fetch("/api/admin/stats", {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to load stats");
       const data = await res.json();

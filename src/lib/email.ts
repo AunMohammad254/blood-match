@@ -129,6 +129,7 @@ function escapeHtml(str: string): string {
  * Helper to send OTP verification email
  */
 export async function sendOtpEmail(to: string, otp: string): Promise<{ success: boolean }> {
+  logger.info(`🔑 [OTP Code] Email Verification OTP for ${to}: ${otp}`);
   const subject = `${otp} is your BloodMatch verification code`;
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
@@ -138,6 +139,26 @@ export async function sendOtpEmail(to: string, otp: string): Promise<{ success: 
         ${escapeHtml(otp)}
       </div>
       <p style="font-size: 12px; color: #9CA3AF;">If you did not request this code, please ignore this email.</p>
+    </div>
+  `;
+
+  return sendEmail({ to, subject, html });
+}
+
+/**
+ * Helper to send Password Reset OTP email
+ */
+export async function sendPasswordResetOtpEmail(to: string, otp: string): Promise<{ success: boolean }> {
+  logger.info(`🔑 [OTP Code] Password Reset OTP for ${to}: ${otp}`);
+  const subject = `${otp} is your BloodMatch password reset code`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+      <h2 style="color: #DC2626; margin-bottom: 8px;">BloodMatch Password Reset</h2>
+      <p style="font-size: 14px; color: #4B5563;">You requested a password reset for your BloodMatch account. Use the code below to reset your password. This code is valid for 10 minutes.</p>
+      <div style="background-color: #FEF2F2; border: 1px solid #FCA5A5; padding: 16px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #991B1B; margin: 20px 0; border-radius: 8px;">
+        ${escapeHtml(otp)}
+      </div>
+      <p style="font-size: 12px; color: #9CA3AF;">If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
     </div>
   `;
 

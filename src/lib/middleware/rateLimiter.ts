@@ -53,9 +53,23 @@ export function checkRateLimit(
   return { allowed: true, remaining: options.limit - entry.count, resetAt: entry.resetAt };
 }
 
-/** Extract a usable identifier from the request (IP or fallback). */
+/**
+ * Extract a usable identifier from the request for rate-limiting purposes.
+ *
+ * Header priority:
+ *  1. `x-real-ip`       — set by Vercel/Railway/Nginx to the real client IP (single value, not spoofable by client).
+ *  2. `x-forwarded-for` — first value only (leftmost = client, but only trustworthy if your proxy sets it).
+ *  3. Fallback to "unknown" if neither is present.
+ *
+ * NOTE: If your deployment platform does NOT guarantee these headers, switch to a
+ * platform-native solution (e.g., Vercel's `req.ip`) or an external rate-limit store.
+ */
 export function getIdentifier(req: Request): string {
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
   const forwarded = req.headers.get("x-forwarded-for");
-  const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
-  return ip;
+  if (forwarded) return forwarded.split(",")[0].trim();
+
+  return "unknown";
 }

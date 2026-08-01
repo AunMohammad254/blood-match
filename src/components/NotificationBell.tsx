@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Bell, Check, Info } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
+import { isLoggedIn, logout } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 interface Notification {
   _id: string;
@@ -8,9 +10,6 @@ interface Notification {
   isRead: boolean;
   createdAt: string;
 }
-
-import { getToken } from "@/lib/auth";
-import { logger } from "@/lib/logger";
 
 export const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -21,15 +20,16 @@ export const NotificationBell: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const fetchNotifications = async () => {
-    const token = getToken();
-    if (!token) return; // Don't fetch if not logged in
+    if (!isLoggedIn()) return; // Don't fetch if not logged in
     
     try {
-      const res = await fetch("/api/notifications", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Cookie is sent automatically — no Authorization header needed
+      const res = await fetch("/api/notifications", { credentials: "include" });
+      if (res.status === 401) {
+        await logout();
+        window.dispatchEvent(new Event("storage"));
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications || []);
@@ -60,11 +60,9 @@ export const NotificationBell: React.FC = () => {
     if (unreadCount === 0) return;
     setLoading(true);
     try {
-      const token = getToken();
-      if (!token) return;
-      await fetch("/api/notifications", { 
+      await fetch("/api/notifications", {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: "include"
       });
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
     } catch (err: any) {

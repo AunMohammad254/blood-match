@@ -1,7 +1,7 @@
 /**
- * @route ${routePath}
- * @description API Endpoint Handler
- * @access Internal/Authenticated
+ * @route POST /api/auth/login
+ * @description Authenticates a user and sets a httpOnly JWT cookie.
+ * @access Public
  */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
@@ -30,10 +30,10 @@ export async function POST(req: Request): Promise<Response> {
     const validationResult = LoginSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          error: "Validation failed", 
-          details: validationResult.error.flatten().fieldErrors 
-        }, 
+        {
+          error: "Validation failed",
+          details: validationResult.error.flatten().fieldErrors
+        },
         { status: 400 }
       );
     }
@@ -60,9 +60,8 @@ export async function POST(req: Request): Promise<Response> {
       { expiresIn: "7d" }
     );
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
-        token,
         user: {
           id: user._id.toString(),
           name: user.name,
@@ -73,11 +72,24 @@ export async function POST(req: Request): Promise<Response> {
           phone: user.phone,
           isAvailable: user.isAvailable,
           lastDonatedAt: user.lastDonatedAt,
+          isEmailVerified: user.isEmailVerified,
           createdAt: user.createdAt
         }
       },
       { status: 200 }
     );
+
+    response.cookies.set({
+      name: "bm_token",
+      value: token,
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60,
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    return response;
   } catch (err: any) {
     logger.error("[POST_/api/auth/login]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });

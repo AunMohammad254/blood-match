@@ -1,7 +1,7 @@
 import React, { useState, memo } from "react";
 import { BloodType } from "@/lib/constants";
 import { BloodTypeBadge } from "./BloodTypeBadge";
-import { Phone, MapPin, ShieldCheck, Copy, Check } from "lucide-react";
+import { Phone, MapPin, ShieldCheck, Copy, Check, Send } from "lucide-react";
 import { formatWhatsAppUrl } from "@/lib/utils";
 
 interface DonorCardProps {
@@ -133,10 +133,17 @@ export const DonorCard = memo<DonorCardProps>(({
           </button>
         </div>
       ) : (
-        <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-800">
-          <p className="text-center text-xs text-gray-400 dark:text-slate-500 font-medium italic">
-            Contact info visible to admins &amp; coordinators only
+        <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-800 space-y-2.5">
+          <p className="text-center text-[11px] text-gray-400 dark:text-slate-500 font-medium italic">
+            🔒 Contact info visible to admins &amp; coordinators only
           </p>
+          <a
+            href={`/dashboard/request/new?bloodType=${bloodType}&city=${encodeURIComponent(city)}`}
+            className="w-full bg-red-50 hover:bg-red-600 dark:bg-red-950/30 dark:hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white dark:hover:text-white border border-red-200 dark:border-red-900/40 hover:border-transparent font-black py-2.5 px-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-xs focus:outline-none focus:ring-2 focus:ring-red-500/50"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Create Emergency Request</span>
+          </a>
         </div>
       )}
     </div>

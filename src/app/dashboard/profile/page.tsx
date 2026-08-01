@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getUser, getToken, saveAuth, logout, updateUser } from "@/lib/auth";
+import { getUser, saveAuth, logout, updateUser } from "@/lib/auth";
 import { User } from "@/types";
 import { CITIES } from "@/lib/constants";
 import {
@@ -159,31 +159,32 @@ export default function ProfilePage() {
 
   const handleAvailabilityToggle = async () => {
     if (!user || user.role !== "donor") return;
-    const token = getToken(); if (!token) return;
     setIsSaving(true);
     try {
       const newAvail = !isAvailable;
       const res = await fetch("/api/donors/availability", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ isAvailable: newAvail }),
       });
       if (res.ok) {
         setIsAvailable(newAvail);
         const u2 = { ...user, isAvailable: newAvail };
-        setUser(u2); saveAuth(token, u2);
+        setUser(u2); saveAuth(u2);
         toast.success(`You are now ${newAvail ? "available" : "unavailable"} for donations.`);
       } else { const d = await res.json(); toast.error(d.error || "Failed to update."); }
     } catch { toast.error("Network error."); } finally { setIsSaving(false); }
   };
 
   const handleEditProfile = async (e: React.FormEvent) => {
-    e.preventDefault(); const token = getToken(); if (!token) return;
+    e.preventDefault();
     setIsEditing(true);
     try {
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(editForm),
       });
       const data = await res.json();
@@ -195,12 +196,12 @@ export default function ProfilePage() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (passForm.newPassword !== passForm.confirmPassword) { toast.error("Passwords do not match."); return; }
-    const token = getToken(); if (!token) return;
     setIsChangingPass(true);
     try {
       const res = await fetch("/api/auth/change-password", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ currentPassword: passForm.currentPassword, newPassword: passForm.newPassword }),
       });
       const data = await res.json();
@@ -214,20 +215,18 @@ export default function ProfilePage() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirm !== "DELETE") { toast.error('Type "DELETE" to confirm.'); return; }
-    const token = getToken(); if (!token) return;
     setIsDeleting(true);
     try {
-      const res = await fetch("/api/user/profile", { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
-      if (res.ok) { logout(); router.push("/"); }
+      const res = await fetch("/api/user/profile", { method: "DELETE", credentials: "include" });
+      if (res.ok) { await logout(); router.push("/"); }
       else { const d = await res.json(); toast.error(d.error || "Failed to delete account."); }
     } catch { toast.error("Network error."); } finally { setIsDeleting(false); }
   };
 
   const handleSendOtp = async () => {
-    const token = getToken(); if (!token) return;
     setIsSendingOtp(true);
     try {
-      const res = await fetch("/api/auth/send-otp", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch("/api/auth/send-otp", { method: "POST", credentials: "include" });
       const data = await res.json();
       if (res.ok) { toast.success("OTP sent! Check your email."); setShowOtpModal(true); }
       else { toast.error(data.error || "Failed to send OTP."); }
@@ -237,12 +236,12 @@ export default function ProfilePage() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpCode || otpCode.length !== 6) { toast.error("Enter a valid 6-digit OTP."); return; }
-    const token = getToken(); if (!token) return;
     setIsVerifyingOtp(true);
     try {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ otp: otpCode }),
       });
       const data = await res.json();

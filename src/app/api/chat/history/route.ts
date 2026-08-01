@@ -1,7 +1,7 @@
-/**
- * @route ${routePath}
- * @description API Endpoint Handler
- * @access Internal/Authenticated
+﻿/**
+ * @route GET/DELETE /api/chat/history
+ * @description API route handler for GET/DELETE /api/chat/history
+ * @access Authenticated
  */
 export const dynamic = "force-dynamic";
 

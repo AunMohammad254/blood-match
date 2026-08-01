@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getUser, updateUser, getToken } from "@/lib/auth";
+import { getUser, updateUser } from "@/lib/auth";
 import { User, RecipientRequest } from "@/types";
 import { getRequests, toggleAvailability, cancelRequest, respondToRequest, reportRequest } from "@/lib/api";
 import { BloodTypeBadge } from "@/components/BloodTypeBadge";
@@ -49,9 +49,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window === "undefined" || !user) return;
 
-    const token = getToken();
-    const liveUrl = token ? `/api/live?token=${encodeURIComponent(token)}` : "/api/live";
-    const eventSource = new EventSource(liveUrl);
+    const eventSource = new EventSource("/api/live");
 
     eventSource.onmessage = (event) => {
       try {
@@ -94,7 +92,7 @@ export default function DashboardPage() {
           getRequests({ status: "open" }),
           getRequests({ acceptedByMe: true }),
           fetch("/api/donors/history", {
-            headers: { Authorization: `Bearer ${getToken()}` }
+            credentials: "include"
           }).then(res => res.json())
         ]);
         setRequests(openRes.data.requests || []);
@@ -182,10 +180,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch("/api/donors/history", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}` 
+        headers: {
+          "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify({
           hospital: "Local Hospital", // Simplified for MVP
           city: user.city,

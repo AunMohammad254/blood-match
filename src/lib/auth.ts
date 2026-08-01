@@ -1,9 +1,10 @@
 import { User } from "@/types";
 
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("bm_token");
-}
+/** 
+ * NOTE: JWT is now stored as an httpOnly cookie (set by /api/auth/login).
+ * The client never has direct access to the token.
+ * Only the user profile object is persisted client-side.
+ */
 
 let cachedUser: User | null = null;
 
@@ -20,22 +21,26 @@ export function getUser(): User | null {
   }
 }
 
-export function saveAuth(token: string, user: User): void {
+export function saveAuth(user: User): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem("bm_token", token);
   localStorage.setItem("bm_user", JSON.stringify(user));
   cachedUser = user;
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
   if (typeof window === "undefined") return;
-  localStorage.removeItem("bm_token");
+  // Clear cookie server-side
+  try {
+    await fetch("/api/auth/logout", { method: "DELETE" });
+  } catch {
+    // Proceed even if the server call fails — clear client state regardless
+  }
   localStorage.removeItem("bm_user");
   cachedUser = null;
 }
 
 export function isLoggedIn(): boolean {
-  return !!getToken();
+  return !!getUser();
 }
 
 export function updateUser(partial: Partial<User>): void {

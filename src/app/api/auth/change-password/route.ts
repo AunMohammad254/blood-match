@@ -1,7 +1,7 @@
-/**
- * @route ${routePath}
- * @description API Endpoint Handler
- * @access Internal/Authenticated
+﻿/**
+ * @route PATCH /api/auth/change-password
+ * @description API route handler for PATCH /api/auth/change-password
+ * @access Authenticated
  */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";

@@ -7,7 +7,7 @@ import {
   Sparkles, RotateCcw, History, Trash2, Clock, Search,
   PlusCircle, Activity, ArrowLeft,
 } from "lucide-react";
-import { getToken, isLoggedIn } from "@/lib/auth";
+import { isLoggedIn, updateUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 
 /* ─── Types ─────────────────────────────────────────────────────── */
@@ -120,7 +120,7 @@ export default function AiChatBot() {
     setIsHistoryLoading(true);
     try {
       const res = await fetch("/api/chat/history", {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       if (res.ok) {
         const data = await res.json();
@@ -151,7 +151,7 @@ export default function AiChatBot() {
 
     try {
       const res = await fetch(`/api/chat/history?id=${sessionId}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
 
       if (res.ok) {
@@ -189,7 +189,7 @@ export default function AiChatBot() {
     try {
       const res = await fetch(`/api/chat/history?id=${sessionId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       if (res.ok) {
         setHistoryList((prev) => prev.filter((s) => s._id !== sessionId));
@@ -228,13 +228,10 @@ export default function AiChatBot() {
     setIsAiLoading(true);
 
     try {
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const token = getToken();
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ messages: updatedMessages, chatSessionId }),
       });
 
@@ -286,20 +283,13 @@ export default function AiChatBot() {
     try {
       const res = await fetch("/api/donors/availability", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}`,
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ isAvailable: targetState }),
       });
       if (res.ok) {
-        const userStr = localStorage.getItem("user");
-        if (userStr) {
-          const user = JSON.parse(userStr);
-          user.isAvailable = targetState;
-          localStorage.setItem("user", JSON.stringify(user));
-          window.dispatchEvent(new Event("storage"));
-        }
+        updateUser({ isAvailable: targetState });
+        window.dispatchEvent(new Event("storage"));
         setMessages((prev) => [
           ...prev,
           {

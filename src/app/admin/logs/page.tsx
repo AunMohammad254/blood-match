@@ -1,7 +1,6 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { getToken } from "@/lib/auth";
 import {
   ShieldAlert, RefreshCw, ChevronLeft, ChevronRight,
   Clock, Search, ShieldCheck
@@ -34,7 +33,7 @@ export default function AdminLogsPage() {
         search: search,
       });
       const res = await fetch(`/api/admin/logs?${params}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();

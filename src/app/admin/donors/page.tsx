@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getToken } from "@/lib/auth";
 import { BLOOD_TYPES, CITIES } from "@/lib/constants";
 import { toast } from "sonner";
 import {
@@ -70,7 +69,7 @@ export default function AdminDonorsPage() {
       if (filterAvailability === "unavailable") params.append("isAvailable", "false");
 
       const res = await fetch(`/api/admin/users?${params}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to load donors");
       const data = await res.json();
@@ -106,7 +105,7 @@ export default function AdminDonorsPage() {
 
       const res = await fetch(`/api/admin/users/${editDonor._id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify(updatePayload),
       });
       const data = await res.json();
@@ -127,7 +126,7 @@ export default function AdminDonorsPage() {
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ isAvailable: !current }),
       });
       const data = await res.json();
@@ -147,7 +146,7 @@ export default function AdminDonorsPage() {
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);

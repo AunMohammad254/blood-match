@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getToken } from "@/lib/auth";
 import { toast } from "sonner";
 import {
   MessageSquare, RefreshCw, ChevronLeft, ChevronRight,
@@ -35,7 +34,7 @@ export default function AdminChatsPage() {
     setError("");
     try {
       const res = await fetch(`/api/admin/chats?page=${page}&limit=${LIMIT}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
@@ -55,7 +54,7 @@ export default function AdminChatsPage() {
     try {
       const res = await fetch(`/api/admin/chats/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Delete failed");

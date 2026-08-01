@@ -1,24 +1,16 @@
 import axios from "axios";
-import { getToken, logout } from "./auth";
+import { logout } from "./auth";
 import { BloodType } from "./constants";
 
-const api = axios.create({ baseURL: "/api" });
-
-// Auto-attach JWT on every request
-api.interceptors.request.use((config) => {
-  const token = getToken();
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Cookies are sent automatically by the browser — no manual token injection needed.
+const api = axios.create({ baseURL: "/api", withCredentials: true });
 
 // Auto-logout on 401
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
+  async (err) => {
     if (err.response?.status === 401) {
-      logout();
+      await logout();
       if (typeof window !== "undefined") {
         window.location.href = "/login";
       }

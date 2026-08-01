@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { getUser, logout, isLoggedIn, getToken } from "@/lib/auth";
+import { getUser, logout, isLoggedIn } from "@/lib/auth";
 import {
   LayoutDashboard,
   Users,
@@ -43,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       try {
         const res = await fetch("/api/user/profile", {
-          headers: { Authorization: `Bearer ${getToken()}` },
+          credentials: "include",
         });
 
         if (!res.ok) {

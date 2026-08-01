@@ -22,6 +22,8 @@ export interface IUser extends Document {
   isEmailVerified: boolean;
   emailVerificationOtp?: string;
   emailVerificationOtpExpiry?: Date;
+  resetPasswordOtp?: string;
+  resetPasswordOtpExpiry?: Date;
   lastDonatedAt?: Date;
   location?: {
     type: "Point";
@@ -51,6 +53,8 @@ const UserSchema = new Schema<IUser>(
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationOtp: { type: String, required: false },
     emailVerificationOtpExpiry: { type: Date, required: false },
+    resetPasswordOtp: { type: String, required: false },
+    resetPasswordOtpExpiry: { type: Date, required: false },
     lastDonatedAt: { type: Date },
     location: {
       type: { type: String, enum: ['Point'], required: false },

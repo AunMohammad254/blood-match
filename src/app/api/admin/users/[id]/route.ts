@@ -1,7 +1,7 @@
 /**
- * @route ${routePath}
- * @description API Endpoint Handler
- * @access Internal/Authenticated
+ * @route GET/PATCH/DELETE /api/admin/users/[id]
+ * @description Admin endpoint to update or delete a specific user account.
+ * @access Admin only
  */
 export const dynamic = "force-dynamic";
 
@@ -20,7 +20,7 @@ const UpdateUserSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 characters.").optional(),
   bloodType: z.enum(BLOOD_TYPES as unknown as [string, ...string[]]).optional(),
   city: z.string().min(2, "City must be at least 2 characters.").optional(),
-  role: z.enum(["donor", "recipient", "admin"]).optional(),
+  role: z.enum(["donor", "recipient", "admin", "coordinator"]).optional(),
   isAvailable: z.boolean().optional(),
   password: z.string().min(6, "Password must be at least 6 characters.").optional(),
 });

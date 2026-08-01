@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getToken } from "@/lib/auth";
 import { BLOOD_TYPES, CITIES } from "@/lib/constants";
 import { toast } from "sonner";
 import {
@@ -88,7 +87,7 @@ export default function AdminUsersPage() {
         search: search,
       });
       const res = await fetch(`/api/admin/users?${params}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
@@ -109,7 +108,7 @@ export default function AdminUsersPage() {
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify(createForm),
       });
       const data = await res.json();
@@ -153,7 +152,7 @@ export default function AdminUsersPage() {
 
       const res = await fetch(`/api/admin/users/${editUser._id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify(updatePayload),
       });
       const data = await res.json();
@@ -174,7 +173,7 @@ export default function AdminUsersPage() {
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ isAvailable: !current }),
       });
       const data = await res.json();
@@ -194,7 +193,7 @@ export default function AdminUsersPage() {
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+        headers: { "Content-Type": "application/json" }, credentials: "include",
         body: JSON.stringify({ role: newRole }),
       });
       const data = await res.json();
@@ -214,7 +213,7 @@ export default function AdminUsersPage() {
     try {
       const res = await fetch(`/api/admin/users/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${getToken()}` },
+        credentials: "include",
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
