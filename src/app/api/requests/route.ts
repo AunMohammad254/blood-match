@@ -15,6 +15,7 @@ import { handleETag } from "@/lib/etag";
 import { logger } from "@/lib/logger";
 import { CreateRequestSchema } from "@/lib/validation/schemas";
 import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
+import { sendAdminAlertEmail } from "@/lib/email";
 
 type PopulatedRequest = HydratedDocument<IBloodRequest> & {
   requestedBy: { _id: string; name: string; city: string };
@@ -215,6 +216,13 @@ export async function POST(req: Request): Promise<Response> {
       expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
       declinedBy: []
     });
+
+    if (urgency === "critical") {
+      sendAdminAlertEmail(
+        "Critical Blood Request Created",
+        `A critical blood request for ${patientName.trim()} (${units} units of ${bloodType}) has been created at ${hospital.trim()}, ${city.trim()}.`
+      ).catch((err) => logger.error("[AdminAlert:criticalRequest]", err));
+    }
 
     invalidateCache("requests");
 

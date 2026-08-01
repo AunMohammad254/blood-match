@@ -257,16 +257,16 @@ export default function DashboardPage() {
         {/* DONOR ECOSYSTEM */}
         {user.role === "donor" && (
           <div className="space-y-12">
-            {!user.isPhoneVerified && (
+            {!user.isEmailVerified && (
               <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200 dark:border-amber-900/30 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-fadeIn">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center shrink-0">
                     <ShieldAlert className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-amber-900 dark:text-amber-300">Verify Your Phone Number</h3>
+                    <h3 className="text-lg font-black text-amber-900 dark:text-amber-300">Verify Your Email Address</h3>
                     <p className="text-sm font-medium text-amber-800 dark:text-amber-400/80 mt-1">
-                      To increase trust and help recipients contact you safely, please verify your phone number. Unverified donors may be filtered out by some hospitals.
+                      To increase trust and help recipients contact you safely, please verify your email address. Unverified donors may be filtered out by some hospitals.
                     </p>
                   </div>
                 </div>

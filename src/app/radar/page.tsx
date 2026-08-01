@@ -370,7 +370,7 @@ export default function RadarPage() {
                       {selectedDonor.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      {selectedDonor.isPhoneVerified ? (
+                      {selectedDonor.isEmailVerified ? (
                         <span className="text-xs font-bold text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-955/20 border border-green-200 dark:border-green-900/40 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 mb-1">
                           <ShieldCheck className="w-3.5 h-3.5" /> Active Verified Donor
                         </span>

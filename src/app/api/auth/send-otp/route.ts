@@ -1,6 +1,6 @@
 /**
- * @route ${routePath}
- * @description API Endpoint Handler
+ * @route /api/auth/send-otp
+ * @description API Endpoint Handler for sending email OTP
  * @access Internal/Authenticated
  */
 import { NextRequest, NextResponse } from "next/server";
@@ -8,7 +8,7 @@ import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
 import { User } from "@/lib/models/User";
 import { connectDB } from "@/lib/db/connect";
 import { verifyAuth } from "@/lib/middleware/auth";
-import { sendSMS } from "@/lib/sms";
+import { sendOtpEmail } from "@/lib/email";
 import crypto from "crypto";
 import { logger } from "@/lib/logger";
 
@@ -28,30 +28,40 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     const user = await User.findById(decoded.userId);
+
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "User session not found. Please log out and log in again." },
+        { status: 404 }
+      );
     }
 
-    if (user.isPhoneVerified) {
-      return NextResponse.json({ error: "Phone number is already verified" }, { status: 400 });
+    if (user.isEmailVerified) {
+      return NextResponse.json({ error: "Email address is already verified" }, { status: 400 });
     }
 
     // Generate 6-digit OTP
-    const otp = crypto.randomInt(100000, 999999).toString();
+    const otp = crypto.randomInt(100000, 1000000).toString();
     const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-    user.verificationOtp = otp;
-    user.verificationOtpExpiry = expiry;
+    user.emailVerificationOtp = otp;
+    user.emailVerificationOtpExpiry = expiry;
     await user.save();
 
-    // Send SMS
-    const message = `Your BloodMatch verification code is: ${otp}. It will expire in 5 minutes.`;
-    const smsResult = await sendSMS(user.phone, message);
+    // Send Email OTP
+    try {
+      await sendOtpEmail(user.email, otp);
+    } catch (sendErr) {
+      logger.error("[SendOTP] Email delivery failed:", sendErr);
+      return NextResponse.json(
+        { error: "Failed to send OTP email. Please verify email credentials." },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ 
       success: true, 
-      message: "OTP sent successfully",
-      provider: smsResult.provider
+      message: "OTP sent to your email successfully"
     });
   } catch (error) {
     logger.error("Send OTP Error:", error);

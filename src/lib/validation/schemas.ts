@@ -8,6 +8,7 @@ export const RegisterSchema = z.object({
     .regex(/[A-Z]/, "Password must contain uppercase")
     .regex(/[a-z]/, "Password must contain lowercase")
     .regex(/[0-9]/, "Password must contain number"),
+  // Phone is a required contact field for donor-recipient coordination (not used for OTP verification)
   phone: z.string().min(10, "Phone must be at least 10 digits").max(15),
   bloodType: z.enum(BLOOD_TYPES as unknown as unknown as [string, ...string[]]),
   city: z.enum(CITIES as unknown as unknown as [string, ...string[]]),

@@ -24,6 +24,7 @@ export const DonorCard = memo<DonorCardProps>(({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
+    if (!phone) return;
     navigator.clipboard.writeText(phone);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

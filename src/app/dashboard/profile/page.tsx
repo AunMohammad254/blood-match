@@ -40,7 +40,7 @@ function getProfileCompletion(user: User): { score: number; missing: string[] } 
     [!!user.phone,           "Phone number"],
     [!!user.city,            "City"],
     [!!user.bloodType,       "Blood type"],
-    [!!user.isPhoneVerified, "Phone verification"],
+    [!!user.isEmailVerified, "Email verification"],
     [!!user.lastDonatedAt,   "Last donation date"],
   ];
   const done = checks.filter(([v]) => v).length;
@@ -229,7 +229,7 @@ export default function ProfilePage() {
     try {
       const res = await fetch("/api/auth/send-otp", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (res.ok) { toast.success("OTP sent! Check your phone."); setShowOtpModal(true); }
+      if (res.ok) { toast.success("OTP sent! Check your email."); setShowOtpModal(true); }
       else { toast.error(data.error || "Failed to send OTP."); }
     } catch { toast.error("Network error."); } finally { setIsSendingOtp(false); }
   };
@@ -247,9 +247,9 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success("Phone verified! ✅");
+        toast.success("Email verified! ✅");
         setShowOtpModal(false); setOtpCode("");
-        if (user) { const u2 = { ...user, isPhoneVerified: true }; setUser(u2); updateUser(u2); }
+        if (user) { const u2 = { ...user, isEmailVerified: true }; setUser(u2); updateUser(u2); }
       } else { toast.error(data.error || "Invalid OTP."); }
     } catch { toast.error("Network error."); } finally { setIsVerifyingOtp(false); }
   };
@@ -308,7 +308,7 @@ export default function ProfilePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   <h1 className="text-2xl font-black text-gray-900 dark:text-white truncate">{user.name}</h1>
-                  {user.isPhoneVerified && (
+                  {user.isEmailVerified && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                       <ShieldCheck className="w-3 h-3" /> Verified
                     </span>
@@ -375,14 +375,14 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ── Phone Verification Banner ────────────────────────────────────── */}
-        {!user.isPhoneVerified && (
+        {/* ── Email Verification Banner ────────────────────────────────────── */}
+        {!user.isEmailVerified && (
           <div className="flex items-center justify-between gap-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 rounded-2xl px-5 py-4">
             <div className="flex items-center gap-3">
               <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
               <div>
-                <p className="text-sm font-bold text-amber-900 dark:text-amber-300">Phone not verified</p>
-                <p className="text-xs text-amber-700 dark:text-amber-500">Unverified donors are filtered out by many hospitals.</p>
+                <p className="text-sm font-bold text-amber-900 dark:text-amber-300">Email not verified</p>
+                <p className="text-xs text-amber-700 dark:text-amber-500">Verify your email to increase trust and donor visibility.</p>
               </div>
             </div>
             <button onClick={handleSendOtp} disabled={isSendingOtp}
@@ -399,9 +399,9 @@ export default function ProfilePage() {
             <StatCard icon={<Droplets className="w-5 h-5" />} value={user.bloodType || "—"} label="Blood Type" color="red" />
             <StatCard
               icon={<Star className="w-5 h-5" />}
-              value={user.isPhoneVerified ? "Verified" : "Pending"}
+              value={user.isEmailVerified ? "Verified" : "Pending"}
               label="Trust Level"
-              color={user.isPhoneVerified ? "green" : "amber"}
+              color={user.isEmailVerified ? "green" : "amber"}
             />
             <StatCard
               icon={<Clock className="w-5 h-5" />}
@@ -463,15 +463,6 @@ export default function ProfilePage() {
                       <p className="text-xs text-gray-400 dark:text-slate-500 font-semibold uppercase tracking-wider">Phone</p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         <p className="text-sm text-gray-900 dark:text-white font-bold">{user.phone}</p>
-                        {user.isPhoneVerified ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800 uppercase tracking-widest">
-                            <ShieldCheck className="w-3 h-3" /> Verified
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded border bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800 uppercase tracking-widest">
-                            <ShieldAlert className="w-3 h-3" /> Unverified
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -481,12 +472,6 @@ export default function ProfilePage() {
                       className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-400">
                       {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                     </button>
-                    {!user.isPhoneVerified && user.role === "donor" && (
-                      <button onClick={handleSendOtp} disabled={isSendingOtp}
-                        className="text-[11px] font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 dark:text-amber-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-                        {isSendingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : "Verify"}
-                      </button>
-                    )}
                   </div>
                 </div>
 
@@ -623,7 +608,7 @@ export default function ProfilePage() {
               <div className="space-y-3">
                 {[
                   { check: !isInCooldown,          label: "56-day cooldown passed",   detail: isInCooldown ? `${daysUntilEligible} days left` : "Fully eligible" },
-                  { check: !!user.isPhoneVerified,  label: "Phone verified",           detail: user.isPhoneVerified ? "Verified" : "Not verified" },
+                  { check: !!user.isEmailVerified,  label: "Email verified",           detail: user.isEmailVerified ? "Verified" : "Not verified" },
                   { check: isAvailable,             label: "Marked as available",      detail: isAvailable ? "Active" : "Hidden" },
                   { check: !!user.city,             label: "Location set",             detail: user.city || "Not set" },
                 ].map(({ check, label, detail }) => (
@@ -665,20 +650,20 @@ export default function ProfilePage() {
                   </button>
                 </div>
 
-                {/* Phone 2FA */}
+                {/* Email Verification Row */}
                 <div className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/40 border border-gray-100 dark:border-slate-800">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-sm">
-                      <Phone className="w-5 h-5 text-green-600" />
+                      <ShieldCheck className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 dark:text-white">Phone Verification</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white">Email Verification</p>
                       <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">
-                        {user.isPhoneVerified ? "Verified via OTP" : "Adds trust & visibility"}
+                        {user.isEmailVerified ? "Verified via email OTP" : "Adds trust & donor visibility"}
                       </p>
                     </div>
                   </div>
-                  {user.isPhoneVerified ? (
+                  {user.isEmailVerified ? (
                     <span className="text-xs font-black text-green-600 dark:text-green-400 flex items-center gap-1">
                       <ShieldCheck className="w-4 h-4" /> Active
                     </span>
@@ -883,7 +868,7 @@ export default function ProfilePage() {
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl border border-gray-150 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-              <h3 className="text-xl font-black text-gray-900 dark:text-white">Verify Phone</h3>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white">Verify Email Address</h3>
               <button onClick={() => setShowOtpModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors">
                 <X className="w-5 h-5 text-gray-500 dark:text-slate-400" />
               </button>
@@ -893,7 +878,7 @@ export default function ProfilePage() {
                 <ShieldCheck className="w-8 h-8" />
               </div>
               <p className="text-sm text-gray-500 dark:text-slate-400 font-medium mb-6">
-                6-digit code sent to <strong className="text-gray-900 dark:text-white">{user.phone}</strong>
+                6-digit code sent to <strong className="text-gray-900 dark:text-white">{user.email}</strong>
               </p>
               <div className="space-y-4">
                 <input type="text" required maxLength={6} value={otpCode}

@@ -17,7 +17,7 @@ export async function GET(req: Request): Promise<Response> {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const notifications = getNotifications(user.userId);
+    const notifications = await getNotifications(user.userId);
     return NextResponse.json({ notifications }, { status: 200 });
   } catch (err: any) {
     logger.error("[GET /api/notifications]", err);
@@ -32,7 +32,7 @@ export async function PATCH(req: Request): Promise<Response> {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    markAllAsRead(user.userId);
+    await markAllAsRead(user.userId);
     return NextResponse.json({ message: "All notifications marked as read." }, { status: 200 });
   } catch (err: any) {
     logger.error("[PATCH /api/notifications]", err);

@@ -114,8 +114,6 @@ TONE: Be concise, warm, and empathetic. This is a life-saving platform — users
 Always encourage users to call emergency services (1122 or 115 in Pakistan) for life-threatening emergencies.
 Keep responses short unless the user asks for detailed information.`;
 
-let genAIInstance: GoogleGenerativeAI | null = null;
-
 export async function POST(req: Request): Promise<Response> {
   try {
     const { messages, chatSessionId } = await req.json();
@@ -124,22 +122,25 @@ export async function POST(req: Request): Promise<Response> {
       return NextResponse.json({ error: "Messages are required." }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "AI service not configured." }, { status: 503 });
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    const isUnconfigured = !apiKey || apiKey.includes("your_");
+
+    if (isUnconfigured) {
+      return NextResponse.json({
+        reply: "BloodBot is currently in offline mode (Gemini API key is unconfigured). You can still search for donors on the Match tab or post a blood request from the Dashboard!",
+        action: null,
+        model: "offline-demo"
+      });
     }
 
     await connectDB();
 
     // Client IP tracking
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || 
-               req.headers.get("x-real-ip") || 
-               "127.0.0.1";
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ||
+      req.headers.get("x-real-ip") ||
+      "127.0.0.1";
 
-    if (!genAIInstance) {
-      genAIInstance = new GoogleGenerativeAI(apiKey);
-    }
-    const genAI = genAIInstance;
+    const genAI = new GoogleGenerativeAI(apiKey);
 
     // Token optimization: Keep only the last 6 messages of history (3 turns of conversation)
     const MAX_HISTORY_MESSAGES = 6;
@@ -153,13 +154,15 @@ export async function POST(req: Request): Promise<Response> {
 
     const lastMessage = messages[messages.length - 1];
 
-    // Priority models with adjusted RPM and RPD limits (-1 from standard)
+    // Priority fallback order based on Google AI Studio project quotas
     const models = [
-      { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash", rpm: 14, rpd: 499 },
-      { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash Lite", rpm: 14, rpd: 499 },
-      { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash", rpm: 4, rpd: 19 },
-      { id: "gemini-3-flash-preview", displayName: "Gemini 3", rpm: 4, rpd: 19 }
+      { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash Lite", rpm: 14, rpd: 499 },
+      { id: "gemini-3.6-flash",      displayName: "Gemini 3.6 Flash",      rpm: 4,  rpd: 19 },
+      { id: "gemini-3.5-flash",      displayName: "Gemini 3.5 Flash",      rpm: 4,  rpd: 19 },
+      { id: "gemini-2.0-flash-lite", displayName: "Gemini 2.0 Flash Lite", rpm: 29, rpd: 1499 },
+      { id: "gemini-2.0-flash",      displayName: "Gemini 2.0 Flash",      rpm: 14, rpd: 1499 }
     ];
+
 
     let responseSent = false;
     let finalReply = null;
@@ -207,7 +210,7 @@ export async function POST(req: Request): Promise<Response> {
 
       try {
         const graphContext = getGraphContext(lastMessage.content);
-        const combinedPrompt = graphContext 
+        const combinedPrompt = graphContext
           ? `${SYSTEM_PROMPT}\n\n${graphContext}`
           : SYSTEM_PROMPT;
 
@@ -264,11 +267,11 @@ export async function POST(req: Request): Promise<Response> {
 
         const chat = model.startChat({ history: validHistory });
         const result = await chat.sendMessage(lastMessage.content);
-        
+
         let text = "";
         try {
           text = result.response.text();
-        } catch (e) {}
+        } catch (e) { }
 
         const functionCalls = result.response.functionCalls();
         let action = null;
@@ -330,9 +333,17 @@ export async function POST(req: Request): Promise<Response> {
       return NextResponse.json({ error: rateLimitMessage || "You have exceeded the rate limit. Please try again later.", code: "RATE_LIMIT_EXCEEDED" }, { status: 429 });
     }
 
-    return NextResponse.json({ error: "AI service error. Please try again later." }, { status: 500 });
+    return NextResponse.json({
+      reply: "BloodBot is temporarily unable to connect to Gemini AI. You can still search for donors directly on the Match tab!",
+      action: null,
+      model: "fallback"
+    });
   } catch (err: any) {
     logger.error("[POST /api/chat] Critical error:", err.message || err);
-    return NextResponse.json({ error: "Server error. Please try again." }, { status: 500 });
+    return NextResponse.json({
+      reply: "BloodBot is currently unavailable. Please use the Match page to find donors!",
+      action: null,
+      model: "fallback"
+    });
   }
 }

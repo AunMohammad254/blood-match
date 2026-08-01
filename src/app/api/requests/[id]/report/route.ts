@@ -11,6 +11,7 @@ import { BloodRequest } from "@/lib/models/BloodRequest";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { invalidateCache } from "@/lib/cache";
 import { logger } from "@/lib/logger";
+import { sendAdminAlertEmail } from "@/lib/email";
 
 export async function POST(
   req: Request,
@@ -42,6 +43,13 @@ export async function POST(
     request.reportedBy.push(user.userId);
     
     await request.save();
+
+    if (request.reports >= 3) {
+      sendAdminAlertEmail(
+        "Heavily Reported Blood Request",
+        `Blood request ${request._id} for patient "${request.patientName}" has accumulated ${request.reports} reports. Please review it in the admin console.`
+      ).catch((err) => logger.error("[AdminAlert:reportedRequest]", err));
+    }
 
     invalidateCache("requests");
 

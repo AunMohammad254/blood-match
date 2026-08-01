@@ -1,6 +1,6 @@
 /**
- * @route ${routePath}
- * @description API Endpoint Handler
+ * @route /api/auth/verify-otp
+ * @description API Endpoint Handler for verifying email OTP
  * @access Internal/Authenticated
  */
 import { NextRequest, NextResponse } from "next/server";
@@ -31,33 +31,37 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     const user = await User.findById(decoded.userId);
+
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "User session not found. Please log out and log in again." },
+        { status: 404 }
+      );
     }
 
-    if (user.isPhoneVerified) {
-      return NextResponse.json({ error: "Phone number is already verified" }, { status: 400 });
+    if (user.isEmailVerified) {
+      return NextResponse.json({ error: "Email address is already verified" }, { status: 400 });
     }
 
-    if (!user.verificationOtp || !user.verificationOtpExpiry) {
+    if (!user.emailVerificationOtp || !user.emailVerificationOtpExpiry) {
       return NextResponse.json({ error: "No OTP was requested" }, { status: 400 });
     }
 
-    if (new Date() > new Date(user.verificationOtpExpiry)) {
+    if (new Date() > new Date(user.emailVerificationOtpExpiry)) {
       return NextResponse.json({ error: "OTP has expired. Please request a new one." }, { status: 400 });
     }
 
-    if (user.verificationOtp !== otp) {
+    if (user.emailVerificationOtp !== otp) {
       return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
     }
 
     // OTP is valid
-    user.isPhoneVerified = true;
-    user.verificationOtp = undefined;
-    user.verificationOtpExpiry = undefined;
+    user.isEmailVerified = true;
+    user.emailVerificationOtp = undefined;
+    user.emailVerificationOtpExpiry = undefined;
     await user.save();
 
-    return NextResponse.json({ success: true, message: "Phone number verified successfully" });
+    return NextResponse.json({ success: true, message: "Email verified successfully" });
   } catch (error) {
     logger.error("Verify OTP Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

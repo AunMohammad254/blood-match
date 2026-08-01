@@ -21,6 +21,7 @@ const users = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Dr. Salman",
@@ -31,6 +32,7 @@ const users = [
     city: "Karachi",
     role: "recipient",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Hassan Ali",
@@ -41,6 +43,7 @@ const users = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Omar Farooq",
@@ -51,6 +54,7 @@ const users = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Bilal Ahmed",
@@ -61,6 +65,7 @@ const users = [
     city: "Lahore",
     role: "donor",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Ayesha Malik",
@@ -71,6 +76,7 @@ const users = [
     city: "Islamabad",
     role: "donor",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Fahad Mustafa",
@@ -81,6 +87,7 @@ const users = [
     city: "Karachi",
     role: "donor",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Sara Khan",
@@ -91,6 +98,7 @@ const users = [
     city: "Lahore",
     role: "donor",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Zainab Hussain",
@@ -101,6 +109,7 @@ const users = [
     city: "Rawalpindi",
     role: "donor",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Tariq Mehmood",
@@ -111,6 +120,7 @@ const users = [
     city: "Faisalabad",
     role: "donor",
     isAvailable: false,
+    isEmailVerified: true,
   },
   {
     name: "System Admin",
@@ -121,6 +131,7 @@ const users = [
     city: "Karachi",
     role: "admin",
     isAvailable: true,
+    isEmailVerified: true,
   },
   {
     name: "Volunteer Coordinator",
@@ -131,6 +142,7 @@ const users = [
     city: "Karachi",
     role: "coordinator",
     isAvailable: true,
+    isEmailVerified: true,
   },
 ];
 
