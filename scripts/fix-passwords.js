@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 import { User } from "@/lib/models/User";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+if (process.env.NODE_ENV === "production") {
+  console.error("❌ Refusing to run dev password-reset script against production database.");
+  process.exit(1);
+}
 
 if (!MONGODB_URI) {
   console.error("❌ MONGODB_URI is not defined in the environment.");

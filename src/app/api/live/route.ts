@@ -8,9 +8,22 @@ import { connectDB } from "@/lib/db/connect";
 import { BloodRequest } from "@/lib/models/BloodRequest";
 import { logger } from "@/lib/logger";
 
+import { verifyAuth } from "@/lib/middleware/auth";
+
 export const dynamic = "force-dynamic";
 
+function maskPatientName(name: string): string {
+  if (!name) return "Patient";
+  const parts = name.trim().split(/\s+/);
+  return parts.map((p) => `${p.charAt(0)}***`).join(" ");
+}
+
 export async function GET(req: Request): Promise<Response> {
+  const user = verifyAuth(req);
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized. Live updates require authentication." }, { status: 401 });
+  }
+
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -39,7 +52,11 @@ export async function GET(req: Request): Promise<Response> {
             .lean();
 
           if (newRequests && newRequests.length > 0) {
-            sendEvent({ type: "new_requests", requests: newRequests });
+            const maskedRequests = newRequests.map((r: any) => ({
+              ...r,
+              patientName: maskPatientName(r.patientName),
+            }));
+            sendEvent({ type: "new_requests", requests: maskedRequests });
             lastChecked = new Date();
           } else {
             sendEvent({ type: "ping" });

@@ -18,6 +18,11 @@ import { logger } from "@/lib/logger";
 
 export async function GET(req: Request): Promise<Response> {
   try {
+    const user = verifyAuth(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized. Please log in to view donor directory." }, { status: 401 });
+    }
+
     await connectDB();
     const { searchParams } = new URL(req.url);
     const bloodType = searchParams.get("bloodType");
@@ -42,11 +47,9 @@ export async function GET(req: Request): Promise<Response> {
     }
 
     if (city && city.trim()) {
-      // Optimized: Exact match for indexed field
       query.city = city.trim();
     }
 
-    const user = verifyAuth(req);
     const isAdminOrCoordinator = user && (user.role === "admin" || user.role === "coordinator");
     const selectFields = isAdminOrCoordinator
       ? "name bloodType city phone isAvailable lastDonatedAt createdAt"

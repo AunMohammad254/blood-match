@@ -114,6 +114,18 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions): 
 }
 
 /**
+ * HTML Escaping helper to prevent HTML injection in outbound emails
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
  * Helper to send OTP verification email
  */
 export async function sendOtpEmail(to: string, otp: string): Promise<{ success: boolean }> {
@@ -123,7 +135,7 @@ export async function sendOtpEmail(to: string, otp: string): Promise<{ success: 
       <h2 style="color: #DC2626; margin-bottom: 8px;">BloodMatch Email Verification</h2>
       <p style="font-size: 14px; color: #4B5563;">Use the verification code below to verify your email address. This code is valid for 5 minutes.</p>
       <div style="background-color: #FEF2F2; border: 1px solid #FCA5A5; padding: 16px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #991B1B; margin: 20px 0; border-radius: 8px;">
-        ${otp}
+        ${escapeHtml(otp)}
       </div>
       <p style="font-size: 12px; color: #9CA3AF;">If you did not request this code, please ignore this email.</p>
     </div>
@@ -136,16 +148,17 @@ export async function sendOtpEmail(to: string, otp: string): Promise<{ success: 
  * Helper to send in-app notification copy as email
  */
 export async function sendNotificationEmail(to: string, subject: string, message: string): Promise<{ success: boolean }> {
+  const safeMessage = escapeHtml(message);
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
       <h2 style="color: #DC2626; margin-bottom: 8px;">BloodMatch Notification</h2>
-      <p style="font-size: 15px; color: #1F2937; line-height: 1.5; margin: 16px 0;">${message}</p>
+      <p style="font-size: 15px; color: #1F2937; line-height: 1.5; margin: 16px 0;">${safeMessage}</p>
       <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 20px 0;" />
       <p style="font-size: 12px; color: #9CA3AF;">You received this email because you have notifications enabled on BloodMatch.</p>
     </div>
   `;
 
-  return sendEmail({ to, subject, html });
+  return sendEmail({ to, subject: escapeHtml(subject), html });
 }
 
 /**
@@ -158,10 +171,12 @@ export async function sendAdminAlertEmail(subject: string, message: string): Pro
     return null;
   }
 
+  const safeSubject = escapeHtml(subject);
+  const safeMessage = escapeHtml(message);
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #EF4444; border-radius: 8px; background-color: #FEF2F2;">
-      <h2 style="color: #991B1B; margin-bottom: 8px;">🚨 Admin Alert: ${subject}</h2>
-      <p style="font-size: 14px; color: #7F1D1D; line-height: 1.5; margin: 16px 0;">${message}</p>
+      <h2 style="color: #991B1B; margin-bottom: 8px;">🚨 Admin Alert: ${safeSubject}</h2>
+      <p style="font-size: 14px; color: #7F1D1D; line-height: 1.5; margin: 16px 0;">${safeMessage}</p>
       <p style="font-size: 12px; color: #991B1B;">BloodMatch Administrative System Alert</p>
     </div>
   `;

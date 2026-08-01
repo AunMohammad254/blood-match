@@ -62,17 +62,26 @@ export async function PATCH(
     }
 
     if (action === "accept") {
-      request.status = "accepted";
-      request.matchedDonor = user.userId as any;
-      await request.save();
+      const updated = await BloodRequest.findOneAndUpdate(
+        { _id: id, status: "open" },
+        { status: "accepted", matchedDonor: user.userId },
+        { new: true }
+      );
+
+      if (!updated) {
+        return NextResponse.json(
+          { error: "Request is no longer open or has already been accepted." },
+          { status: 409 }
+        );
+      }
       
       invalidateCache("requests");
       invalidateCache("donors");
 
       // Notify the requester
       addNotification(
-        request.requestedBy.toString(),
-        `A donor has accepted your blood request for ${request.patientName}!`
+        updated.requestedBy.toString(),
+        `A donor has accepted your blood request for ${updated.patientName}!`
       );
 
       // Fetch the updated request with full contact details to return to the donor

@@ -12,7 +12,11 @@ export const RegisterSchema = z.object({
   phone: z.string().min(10, "Phone must be at least 10 digits").max(15),
   bloodType: z.enum(BLOOD_TYPES as unknown as unknown as [string, ...string[]]),
   city: z.enum(CITIES as unknown as unknown as [string, ...string[]]),
-  role: z.enum(ROLES as unknown as unknown as [string, ...string[]]),
+  role: z.enum(["donor", "recipient"]),
+  location: z.object({
+    type: z.string().optional(),
+    coordinates: z.array(z.number()).length(2)
+  }).optional(),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
 });

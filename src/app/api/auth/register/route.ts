@@ -1,7 +1,7 @@
 /**
- * @route ${routePath}
- * @description API Endpoint Handler
- * @access Internal/Authenticated
+ * @route /api/auth/register
+ * @description API Endpoint Handler for User Registration
+ * @access Public
  */
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
@@ -36,8 +36,15 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
-    const { name, email, password, phone, bloodType, city, role } = validationResult.data;
-    const location = body.location; // extract location if provided
+    const { name, email, password, phone, bloodType, city, role, location } = validationResult.data;
+
+    // Hard server-side enforcement: Public registration is ONLY allowed for donor or recipient roles
+    if (role !== "donor" && role !== "recipient") {
+      return NextResponse.json(
+        { error: "Invalid registration role. Only donor and recipient roles are allowed." },
+        { status: 400 }
+      );
+    }
 
     const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {

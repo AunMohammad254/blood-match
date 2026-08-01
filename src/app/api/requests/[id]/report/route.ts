@@ -25,35 +25,33 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    const request = await BloodRequest.findById(params.id);
-    if (!request) {
-      return NextResponse.json({ error: "Request not found." }, { status: 404 });
-    }
+    const updated = await BloodRequest.findOneAndUpdate(
+      { _id: params.id, reportedBy: { $ne: user.userId } },
+      { 
+        $inc: { reports: 1 }, 
+        $addToSet: { reportedBy: user.userId } 
+      },
+      { new: true }
+    );
 
-    // Check if the user has already reported this request
-    if (request.reportedBy && request.reportedBy.includes(user.userId)) {
+    if (!updated) {
+      const existing = await BloodRequest.findById(params.id);
+      if (!existing) {
+        return NextResponse.json({ error: "Request not found." }, { status: 404 });
+      }
       return NextResponse.json({ error: "You have already reported this request." }, { status: 400 });
     }
 
-    // Increment reports counter and add user to reportedBy list
-    if (!request.reports) request.reports = 0;
-    if (!request.reportedBy) request.reportedBy = [];
-    
-    request.reports += 1;
-    request.reportedBy.push(user.userId);
-    
-    await request.save();
-
-    if (request.reports >= 3) {
+    if (updated.reports >= 3) {
       sendAdminAlertEmail(
         "Heavily Reported Blood Request",
-        `Blood request ${request._id} for patient "${request.patientName}" has accumulated ${request.reports} reports. Please review it in the admin console.`
+        `Blood request ${updated._id} for patient "${updated.patientName}" has accumulated ${updated.reports} reports. Please review it in the admin console.`
       ).catch((err) => logger.error("[AdminAlert:reportedRequest]", err));
     }
 
     invalidateCache("requests");
 
-    return NextResponse.json({ message: "Request reported successfully.", reports: request.reports }, { status: 200 });
+    return NextResponse.json({ message: "Request reported successfully.", reports: updated.reports }, { status: 200 });
   } catch (err) {
     logger.error("[POST_/api/requests/[id]/report]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });
