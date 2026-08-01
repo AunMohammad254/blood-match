@@ -26,9 +26,10 @@ export async function GET(req: Request): Promise<Response> {
 
     const filter: Record<string, any> = {};
     if (search && search.trim()) {
+      const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       filter.$or = [
-        { ip: { $regex: search, $options: "i" } },
-        { modelName: { $regex: search, $options: "i" } },
+        { ip: { $regex: escaped, $options: "i" } },
+        { modelName: { $regex: escaped, $options: "i" } },
       ];
     }
 

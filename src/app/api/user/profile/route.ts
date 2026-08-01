@@ -6,10 +6,14 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
+import { BloodRequest } from "@/lib/models/BloodRequest";
+import { Notification } from "@/lib/models/Notification";
+import { ChatHistory } from "@/lib/models/ChatHistory";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { invalidateCache } from "@/lib/cache";
 import { logger } from "@/lib/logger";
 import { UpdateProfileSchema } from "@/lib/validation/schemas";
+import bcrypt from "bcryptjs";
 
 export async function GET(req: Request): Promise<Response> {
   try {
@@ -119,17 +123,36 @@ export async function DELETE(req: Request): Promise<Response> {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    // For safety, we just mark as unavailable and change role to a "deleted" state 
-    // or actually delete. Let's do actual deletion for this project.
-    const deletedUser = await User.findByIdAndDelete(decoded.userId);
+    const body = await req.json().catch(() => ({}));
+    const { password } = body;
 
-    if (!deletedUser) {
+    if (!password) {
+      return NextResponse.json({ error: "Password confirmation is required to delete account." }, { status: 400 });
+    }
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
-    invalidateCache("donors");
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return NextResponse.json({ error: "Incorrect password. Account deletion cancelled." }, { status: 401 });
+    }
 
-    return NextResponse.json({ message: "Account deleted successfully." }, { status: 200 });
+    // Perform cascading cleanup for user-owned resources
+    await Promise.all([
+      BloodRequest.deleteMany({ requestedBy: decoded.userId }),
+      BloodRequest.updateMany({ matchedDonor: decoded.userId }, { $unset: { matchedDonor: "" }, $set: { status: "open" } }),
+      Notification.deleteMany({ userId: decoded.userId }),
+      ChatHistory.deleteMany({ userId: decoded.userId }),
+      User.findByIdAndDelete(decoded.userId)
+    ]);
+
+    invalidateCache("donors");
+    invalidateCache("requests");
+
+    return NextResponse.json({ message: "Account and associated data deleted successfully." }, { status: 200 });
   } catch (err: any) {
     logger.error("[DELETE_/api/user/profile]", err);
     return NextResponse.json({ error: "Server error." }, { status: 500 });

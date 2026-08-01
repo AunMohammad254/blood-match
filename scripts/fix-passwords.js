@@ -6,6 +6,8 @@ if (process.env.NODE_ENV === "production") {
   process.exit(1);
 }
 
+const MONGODB_URI = process.env.MONGODB_URI;
+
 if (!MONGODB_URI) {
   console.error("❌ MONGODB_URI is not defined in the environment.");
   process.exit(1);
