@@ -9,6 +9,7 @@ import { DonationRecord } from "@/lib/models/DonationRecord";
 import { User } from "@/lib/models/User";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { logger } from "@/lib/logger";
+import { CreateDonationRecordSchema } from "@/lib/validation/schemas";
 
 export async function GET(req: Request): Promise<Response> {
   try {
@@ -32,14 +33,22 @@ export async function POST(req: Request): Promise<Response> {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { hospital, city, units, notes, donatedAt } = body;
+    const validation = CreateDonationRecordSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.flatten().fieldErrors },
+        { status: 400 }
+      );
+    }
+
+    const { hospital, city, units, notes, donatedAt } = validation.data;
 
     // Create the donation record
     const record = await DonationRecord.create({
       donorId: user.userId,
-      hospital: hospital || "",
-      city: city || "Unknown",
-      units: Number(units) || 1,
+      hospital,
+      city,
+      units,
       notes: notes || "",
       donatedAt: donatedAt ? new Date(donatedAt) : new Date(),
     });
