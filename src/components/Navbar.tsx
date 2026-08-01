@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { getUser, logout } from "@/lib/auth";
 import { User } from "@/types";
-import { Menu, X, User as UserIcon, LayoutDashboard, LogOut, Radar as RadarIcon } from "lucide-react";
+import { Menu, X, User as UserIcon, LayoutDashboard, LogOut, Radar as RadarIcon, ShieldCheck, Activity } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationBell } from "@/components/NotificationBell";
 
@@ -73,6 +73,26 @@ export const Navbar: React.FC = () => {
                 <span>Hello, <strong className="font-black text-red-700 dark:text-red-400">{user.name}</strong></span>
                 <span className="bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">{user.role}</span>
               </Link>
+
+              {(user.role === "hospital_verifier" || user.role === "admin") && (
+                <Link
+                  href="/dashboard/verify"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-md shadow-blue-500/20"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Verify Queue</span>
+                </Link>
+              )}
+
+              {(user.role === "coordinator" || user.role === "admin") && (
+                <Link
+                  href="/dashboard/coordinator"
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-md shadow-purple-500/20"
+                >
+                  <Activity className="w-4 h-4" />
+                  <span>Coordinator</span>
+                </Link>
+              )}
 
               {user.role === "admin" && (
                 <Link

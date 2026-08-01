@@ -38,10 +38,10 @@ export async function POST(req: Request): Promise<Response> {
 
     const { name, email, password, phone, bloodType, city, role, location } = validationResult.data;
 
-    // Hard server-side enforcement: Public registration is ONLY allowed for donor or recipient roles
-    if (role !== "donor" && role !== "recipient") {
+    // Hard server-side enforcement: Public registration is allowed for donor, recipient, patient_attendant, and hospital_verifier roles
+    if (role !== "donor" && role !== "recipient" && role !== "patient_attendant" && role !== "hospital_verifier") {
       return NextResponse.json(
-        { error: "Invalid registration role. Only donor and recipient roles are allowed." },
+        { error: "Invalid registration role." },
         { status: 400 }
       );
     }

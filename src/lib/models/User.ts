@@ -17,7 +17,7 @@ export interface IUser extends Document {
   phone: string;
   bloodType: BloodType;
   city: string;
-  role: "donor" | "recipient";
+  role: "donor" | "recipient" | "patient_attendant" | "hospital_verifier" | "coordinator" | "admin";
   isAvailable: boolean;
   isEmailVerified: boolean;
   emailVerificationOtp?: string;

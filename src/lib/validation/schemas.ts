@@ -9,7 +9,7 @@ export const RegisterSchema = z.object({
   phone: z.string().min(10, "Phone must be at least 10 digits").max(15),
   bloodType: z.enum(BLOOD_TYPES as unknown as unknown as [string, ...string[]]),
   city: z.enum(CITIES as unknown as unknown as [string, ...string[]]),
-  role: z.enum(["donor", "recipient"]),
+  role: z.enum(["donor", "recipient", "patient_attendant", "hospital_verifier"]),
   location: z.object({
     type: z.string().optional(),
     coordinates: z.array(z.number()).length(2)
@@ -40,7 +40,7 @@ export const UpdateProfileSchema = z.object({
   lastDonatedAt: z.string().datetime().optional(),
   latitude: z.number().min(-90).max(90).optional(),
   longitude: z.number().min(-180).max(180).optional(),
-}).refine(data => Object.keys(data).length > 0, {
+}).refine((data: Record<string, any>) => Object.keys(data).length > 0, {
   message: "At least one field must be provided"
 });
 
@@ -49,7 +49,7 @@ export const CreateDonationRecordSchema = z.object({
   city: z.string().min(2, "City must be at least 2 characters").max(50),
   units: z.number().int().min(1, "Units must be at least 1").max(10, "Units cannot exceed 10"),
   notes: z.string().max(500, "Notes cannot exceed 500 characters").optional().default(""),
-  donatedAt: z.string().optional().refine(val => {
+  donatedAt: z.string().optional().refine((val: string | undefined) => {
     if (!val) return true;
     const date = new Date(val);
     return !isNaN(date.getTime()) && date <= new Date();

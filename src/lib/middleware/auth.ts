@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
 import { config } from "@/lib/config";
+import { Role } from "@/lib/constants";
 
 export interface DecodedToken {
   userId: string;
-  role: "donor" | "recipient" | "admin" | "coordinator";
+  role: Role;
   bloodType: string;
 }
 

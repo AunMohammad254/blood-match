@@ -626,3 +626,107 @@ export function pushChatLog(log: any) {
   }
 }
 
+export const VerificationMemoryModel = {
+  find: (query?: any) => {
+    let matches = (memoryDatabase as any).verifications || [];
+    if (query?.requestId) matches = matches.filter((v: any) => v.requestId === query.requestId);
+    if (query?.verifiedBy) matches = matches.filter((v: any) => v.verifiedBy === query.verifiedBy);
+    return new MockQuery([...matches], true);
+  },
+  create: async (data: any) => {
+    if (!(memoryDatabase as any).verifications) (memoryDatabase as any).verifications = [];
+    const newVerification = {
+      ...data,
+      _id: "ver_" + Date.now(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    (memoryDatabase as any).verifications.push(newVerification);
+  },
+};
+
+export const DonorMatchMemoryModel = {
+  find: (query?: any) => {
+    let matches = (memoryDatabase as any).donorMatches || [];
+    if (query?.requestId) matches = matches.filter((m: any) => m.requestId === query.requestId);
+    if (query?.donorId) matches = matches.filter((m: any) => m.donorId === query.donorId);
+    if (query?.status) matches = matches.filter((m: any) => m.status === query.status);
+    return new MockQuery([...matches], true);
+  },
+  create: async (data: any) => {
+    if (!(memoryDatabase as any).donorMatches) (memoryDatabase as any).donorMatches = [];
+    const newMatch = {
+      ...data,
+      _id: "match_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+      matchedAt: data.matchedAt || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    (memoryDatabase as any).donorMatches.push(newMatch);
+    return newMatch;
+  },
+  insertMany: async (records: any[]) => {
+    if (!(memoryDatabase as any).donorMatches) (memoryDatabase as any).donorMatches = [];
+    const created = records.map((r, i) => ({
+      ...r,
+      _id: "match_" + Date.now() + "_" + i,
+      matchedAt: r.matchedAt || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }));
+    (memoryDatabase as any).donorMatches.push(...created);
+  },
+};
+
+export const ConsentMemoryModel = {
+  find: (query?: any) => {
+    let matches = (memoryDatabase as any).consents || [];
+    if (query?.donorId) matches = matches.filter((c: any) => c.donorId === query.donorId);
+    if (query?.requestId) matches = matches.filter((c: any) => c.requestId === query.requestId);
+    if (query?.donorMatchId) matches = matches.filter((c: any) => c.donorMatchId === query.donorMatchId);
+    return new MockQuery([...matches], true);
+  },
+  findOne: (query?: any) => {
+    let matches = (memoryDatabase as any).consents || [];
+    if (query?.donorId) matches = matches.filter((c: any) => c.donorId === query.donorId);
+    if (query?.requestId) matches = matches.filter((c: any) => c.requestId === query.requestId);
+    if (query?.donorMatchId) matches = matches.filter((c: any) => c.donorMatchId === query.donorMatchId);
+    return matches.length > 0 ? matches[0] : null;
+  },
+  create: async (data: any) => {
+    if (!(memoryDatabase as any).consents) (memoryDatabase as any).consents = [];
+    const newConsent = {
+      ...data,
+      _id: "con_" + Date.now(),
+      consentedAt: data.consentedAt || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    (memoryDatabase as any).consents.push(newConsent);
+    return newConsent;
+  },
+};
+
+export const AuditLogMemoryModel = {
+  find: (query?: any) => {
+    let matches = (memoryDatabase as any).auditLogs || [];
+    if (query?.action) matches = matches.filter((a: any) => a.action === query.action);
+    if (query?.performedBy) matches = matches.filter((a: any) => a.performedBy === query.performedBy);
+    return new MockQuery([...matches], true);
+  },
+  create: async (data: any) => {
+    if (!(memoryDatabase as any).auditLogs) (memoryDatabase as any).auditLogs = [];
+    const newLog = {
+      ...data,
+      _id: "audit_" + Date.now(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    (memoryDatabase as any).auditLogs.push(newLog);
+    return newLog;
+  },
+};
+
+
+
+

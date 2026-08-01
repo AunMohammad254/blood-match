@@ -9,10 +9,10 @@ export const CITIES = [
 export const URGENCY_LEVELS = ["normal", "urgent", "critical"] as const;
 export type UrgencyLevel = typeof URGENCY_LEVELS[number];
 
-export const ROLES = ["donor", "recipient", "admin", "coordinator"] as const;
+export const ROLES = ["donor", "recipient", "patient_attendant", "hospital_verifier", "admin", "coordinator"] as const;
 export type Role = typeof ROLES[number];
 
-export const REQUEST_STATUS = ["open", "accepted", "rejected", "fulfilled", "cancelled"] as const;
+export const REQUEST_STATUS = ["pending", "open", "verified", "matched", "contacted", "committed", "donated", "accepted", "rejected", "fulfilled", "expired", "cancelled"] as const;
 export type RequestStatus = typeof REQUEST_STATUS[number];
 
 export const COMPATIBILITY_MAP: Record<BloodType, BloodType[]> = {

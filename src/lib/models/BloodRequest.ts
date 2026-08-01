@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { BloodType, BLOOD_TYPES, URGENCY_LEVELS, REQUEST_STATUS } from "@/lib/constants";
+import { BloodType, BLOOD_TYPES, URGENCY_LEVELS, REQUEST_STATUS, RequestStatus } from "@/lib/constants";
 
 export interface IBloodRequest extends Document {
   patientName: string;
@@ -10,7 +10,7 @@ export interface IBloodRequest extends Document {
   urgency: "normal" | "urgent" | "critical";
   contactPhone: string;
   requestedBy: mongoose.Types.ObjectId;
-  status: "open" | "fulfilled" | "cancelled";
+  status: RequestStatus;
   matchedDonor?: mongoose.Types.ObjectId;
   isVerified: boolean;
   expiresAt?: Date;
@@ -31,7 +31,7 @@ const BloodRequestSchema = new Schema<IBloodRequest>(
     urgency: { type: String, required: true, enum: URGENCY_LEVELS, default: "urgent" },
     contactPhone: { type: String, required: true },
     requestedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    status: { type: String, enum: ["open", "accepted", "rejected", "fulfilled", "cancelled"], default: "open" },
+    status: { type: String, enum: REQUEST_STATUS, default: "pending" },
     matchedDonor: { type: Schema.Types.ObjectId, ref: "User" },
     isVerified: { type: Boolean, required: true, default: false },
     expiresAt: { type: Date },

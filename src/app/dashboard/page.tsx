@@ -40,6 +40,10 @@ export default function DashboardPage() {
         router.push("/admin");
         return;
       }
+      if (currentUser.role === "patient_attendant") {
+        router.push("/dashboard/attendant");
+        return;
+      }
       setUser(currentUser);
       setIsAvailable(currentUser.isAvailable ?? true);
       fetchData(currentUser);

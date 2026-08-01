@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @route GET/POST /api/requests
  * @description API route handler for GET/POST /api/requests
  * @access Authenticated
@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { BloodRequest, IBloodRequest } from "@/lib/models/BloodRequest";
+import { Consent } from "@/lib/models/Consent";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { FilterQuery, HydratedDocument } from "mongoose";
 import { getCache, setCache, invalidateCache } from "@/lib/cache";
@@ -106,6 +107,10 @@ export async function GET(req: Request): Promise<Response> {
       const total = allRequests.length;
       const paginatedRequests = allRequests.slice((page - 1) * limit, page * limit);
 
+      const requestIds = paginatedRequests.map((r: any) => r._id);
+      const consentRecords = await Consent.find({ requestId: { $in: requestIds } }).lean();
+      const consentMap = new Set(consentRecords.map((c: any) => `${c.requestId.toString()}_${c.donorId.toString()}`));
+
       const cleanedRequests = paginatedRequests.map((r: any) => {
         const requestedById = r.requestedBy?._id?.toString() || r.requestedBy?.toString();
         const matchedDonorId = r.matchedDonor?._id?.toString() || r.matchedDonor?.toString();
@@ -113,8 +118,9 @@ export async function GET(req: Request): Promise<Response> {
         const isOwner = user && requestedById === user.userId;
         const isMatchedDonor = user && matchedDonorId === user.userId;
         const isAdminOrCoordinator = user && (user.role === "admin" || user.role === "coordinator");
+        const hasConsent = isMatchedDonor || (isOwner && matchedDonorId && consentMap.has(`${r._id.toString()}_${matchedDonorId}`));
 
-        const hasAccess = isOwner || isMatchedDonor || isAdminOrCoordinator;
+        const hasAccess = isAdminOrCoordinator || hasConsent;
 
         const requestCopy = { ...r } as any;
 
@@ -124,8 +130,8 @@ export async function GET(req: Request): Promise<Response> {
 
         if (requestCopy.matchedDonor && typeof requestCopy.matchedDonor === "object") {
           const matchedDonorCopy = { ...requestCopy.matchedDonor };
-          const isOwnerOrAdmin = isOwner || isAdminOrCoordinator;
-          if (!isOwnerOrAdmin) {
+          const canSeeDonorPhone = isAdminOrCoordinator || (isOwner && matchedDonorId && consentMap.has(`${r._id.toString()}_${matchedDonorId}`));
+          if (!canSeeDonorPhone) {
             delete matchedDonorCopy.phone;
           }
           requestCopy.matchedDonor = matchedDonorCopy;
@@ -175,6 +181,14 @@ export async function POST(req: Request): Promise<Response> {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
+    // Role enforcement: Only patient_attendant, recipient (legacy), or admin can create blood requests
+    if (user.role !== "patient_attendant" && user.role !== "recipient" && user.role !== "admin") {
+      return NextResponse.json(
+        { error: "Forbidden. Only patient attendants and administrators can create blood requests." },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const validationResult = CreateRequestSchema.safeParse(body);
     if (!validationResult.success) {
@@ -194,12 +208,12 @@ export async function POST(req: Request): Promise<Response> {
       requestedBy: user.userId,
       bloodType,
       city: city.trim(),
-      status: "open",
+      status: { $in: ["pending", "open"] },
       createdAt: { $gt: oneDayAgo }
     });
 
     if (existingRequest) {
-      return NextResponse.json({ error: "You already have an open request for this blood type in this city." }, { status: 409 });
+      return NextResponse.json({ error: "You already have a pending or open request for this blood type in this city." }, { status: 409 });
     }
 
     const newRequest = await BloodRequest.create({
@@ -211,7 +225,7 @@ export async function POST(req: Request): Promise<Response> {
       urgency,
       contactPhone: contactPhone.trim(),
       requestedBy: user.userId,
-      status: "open",
+      status: "pending",
       isVerified: false,
       expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
       declinedBy: []

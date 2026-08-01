@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @route GET /api/match
  * @description API route handler for GET /api/match
  * @access Authenticated
