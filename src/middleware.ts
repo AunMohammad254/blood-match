@@ -1,10 +1,27 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
 
 interface DecodedJwt {
-  userId: string;
-  role: string;
+  userId?: string;
+  role?: string;
+}
+
+function decodeJwtPayload(token: string): DecodedJwt | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
 }
 
 export function middleware(request: NextRequest) {
@@ -23,9 +40,7 @@ export function middleware(request: NextRequest) {
   }
 
   try {
-    // Decode token payload without verifying secret in edge runtime if secret decoding isn't edge-crypto bound,
-    // or decode payload using jwt.decode to inspect user role
-    const decoded = jwt.decode(tokenCookie.value) as DecodedJwt | null;
+    const decoded = decodeJwtPayload(tokenCookie.value);
     if (!decoded || !decoded.role) {
       return NextResponse.redirect(new URL("/login", request.url));
     }

@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   compress: true,
+  experimental: {
+    serverComponentsExternalPackages: ["mongoose"],
+  },
   
   async headers() {
     return [
