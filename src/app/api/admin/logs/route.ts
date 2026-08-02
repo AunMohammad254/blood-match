@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @route GET /api/admin/logs
  * @description API route handler for GET /api/admin/logs
  * @access Authenticated
@@ -23,6 +23,33 @@ export async function GET(req: Request): Promise<Response> {
     const search = searchParams.get("search");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.min(100, parseInt(searchParams.get("limit") || "20"));
+
+    const type = searchParams.get("type");
+    const severity = searchParams.get("severity");
+
+    if (type === "error" || severity) {
+      const { ErrorLog } = await import("@/lib/models/ErrorLog");
+      const errorFilter: Record<string, any> = {};
+      if (severity) errorFilter.severity = severity;
+      if (search && search.trim()) {
+        const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        errorFilter.$or = [
+          { route: { $regex: escaped, $options: "i" } },
+          { message: { $regex: escaped, $options: "i" } },
+        ];
+      }
+
+      const [errorLogs, total] = await Promise.all([
+        ErrorLog.find(errorFilter)
+          .sort({ timestamp: -1 })
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .lean(),
+        ErrorLog.countDocuments(errorFilter),
+      ]);
+
+      return NextResponse.json({ logs: errorLogs, total, page, limit });
+    }
 
     const filter: Record<string, any> = {};
     if (search && search.trim()) {

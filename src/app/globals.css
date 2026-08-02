@@ -2,10 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --gradient-hero: linear-gradient(135deg, #1a0812 0%, #240b36 100%);
+  --gradient-hero-hover: linear-gradient(135deg, #240b36 0%, #360f4c 100%);
+}
+
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900 dark:bg-slate-950 dark:text-slate-100 antialiased flex flex-col min-h-screen selection:bg-red-500 selection:text-white;
+    @apply bg-gray-50 text-gray-900 dark:bg-[#1a0812] dark:text-slate-100 antialiased flex flex-col min-h-screen selection:bg-red-500 selection:text-white;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

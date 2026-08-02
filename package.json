@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "bun test",
     "seed": "bun scripts/seed.js",
     "graphify": "graphify"
   },

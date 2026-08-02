@@ -216,6 +216,15 @@ export async function POST(req: Request): Promise<Response> {
       return NextResponse.json({ error: "You already have a pending or open request for this blood type in this city." }, { status: 409 });
     }
 
+    const { detectDuplicateRequest } = await import("@/lib/duplicate-detector");
+    const duplicateCheck = await detectDuplicateRequest({
+      patientName: patientName.trim(),
+      hospital: hospital.trim(),
+      city: city.trim(),
+      bloodType,
+      windowHours: 24,
+    });
+
     const newRequest = await BloodRequest.create({
       patientName: patientName.trim(),
       bloodType,
@@ -227,6 +236,8 @@ export async function POST(req: Request): Promise<Response> {
       requestedBy: user.userId,
       status: "pending",
       isVerified: false,
+      isPotentialDuplicate: duplicateCheck.isDuplicate,
+      duplicateFlagReason: duplicateCheck.reason,
       expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
       declinedBy: []
     });
@@ -243,7 +254,8 @@ export async function POST(req: Request): Promise<Response> {
     return NextResponse.json(
       {
         message: "Request created.",
-        request: newRequest
+        request: newRequest,
+        duplicateWarning: duplicateCheck.isDuplicate ? duplicateCheck.reason : null,
       },
       { status: 201 }
     );

@@ -63,13 +63,41 @@ function log(level: LogLevel, message: string, context?: unknown) {
   const sanitized = sanitizeContext(context);
 
   if (process.env.NODE_ENV === 'production') {
-    // Structured JSON for log aggregators (e.g., Datadog, Logtail)
+    // Structured JSON for log aggregators
     console.log(JSON.stringify({ level, message, context: sanitized, timestamp: new Date().toISOString() }));
   } else {
     // Pretty-print in development
     console[level === 'error' ? 'error' : 'log'](
       `[${level.toUpperCase()}]`, message, sanitized ?? ''
     );
+  }
+
+  // Asynchronously record error/warn entries to ErrorLog collection in DB
+  if (level === 'error' || level === 'warn') {
+    persistErrorLog(level, message, sanitized).catch(() => {});
+  }
+}
+
+async function persistErrorLog(level: 'warn' | 'error', message: string, context?: unknown) {
+  try {
+    const mongoose = (await import("mongoose")).default;
+    if (mongoose.connection?.readyState === 1) {
+      const { ErrorLog } = await import("@/lib/models/ErrorLog");
+      const ctxObj = (context && typeof context === 'object') ? (context as Record<string, any>) : {};
+      const route = ctxObj.route || ctxObj.path || message.split(" ")[0] || "system";
+      const stackSummary = ctxObj.stack || ctxObj.error || (ctxObj.message ? String(ctxObj.message) : undefined);
+
+      await ErrorLog.create({
+        route,
+        message: message.slice(0, 500),
+        stackSummary: stackSummary ? String(stackSummary).slice(0, 1000) : undefined,
+        severity: level === 'error' ? 'error' : 'warn',
+        userRole: ctxObj.userRole || "unauthenticated",
+        timestamp: new Date(),
+      });
+    }
+  } catch {
+    // Logging failure must never break execution
   }
 }
 

@@ -13,6 +13,8 @@ export interface IBloodRequest extends Document {
   status: RequestStatus;
   matchedDonor?: mongoose.Types.ObjectId;
   isVerified: boolean;
+  isPotentialDuplicate?: boolean;
+  duplicateFlagReason?: string;
   expiresAt?: Date;
   declinedBy: mongoose.Types.ObjectId[];
   reports: number;
@@ -34,6 +36,8 @@ const BloodRequestSchema = new Schema<IBloodRequest>(
     status: { type: String, enum: REQUEST_STATUS, default: "pending" },
     matchedDonor: { type: Schema.Types.ObjectId, ref: "User" },
     isVerified: { type: Boolean, required: true, default: false },
+    isPotentialDuplicate: { type: Boolean, default: false },
+    duplicateFlagReason: { type: String },
     expiresAt: { type: Date },
     declinedBy: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
     reports: { type: Number, default: 0 },
