@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @route GET /api/admin/requests
  * @description API route handler for GET /api/admin/requests
  * @access Authenticated
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { BloodRequest } from "@/lib/models/BloodRequest";
-import { requireAdmin } from "@/lib/middleware/auth";
+import { requirePrivileged } from "@/lib/middleware/auth";
 import { z } from "zod";
 import { BLOOD_TYPES, URGENCY_LEVELS } from "@/lib/constants";
 import { invalidateCache } from "@/lib/cache";
@@ -30,9 +30,9 @@ const CreateRequestSchema = z.object({
 // GET — List blood requests
 export async function GET(req: Request): Promise<Response> {
   try {
-    const admin = requireAdmin(req);
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden. Admin access only." }, { status: 403 });
+    const user = requirePrivileged(req);
+    if (!user) {
+      return NextResponse.json({ error: "Forbidden. Admin or coordinator access required." }, { status: 403 });
     }
 
     await connectDB();
@@ -78,9 +78,9 @@ export async function GET(req: Request): Promise<Response> {
 // POST — Create blood request
 export async function POST(req: Request): Promise<Response> {
   try {
-    const admin = requireAdmin(req);
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden. Admin access only." }, { status: 403 });
+    const user = requirePrivileged(req);
+    if (!user) {
+      return NextResponse.json({ error: "Forbidden. Admin or coordinator access required." }, { status: 403 });
     }
 
     await connectDB();

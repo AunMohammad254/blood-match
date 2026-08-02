@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @route PATCH /api/admin/requests/[id]
  * @description API route handler for PATCH /api/admin/requests/[id]
  * @access Authenticated
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { BloodRequest } from "@/lib/models/BloodRequest";
-import { requireAdmin } from "@/lib/middleware/auth";
+import { requireAdmin, requirePrivileged } from "@/lib/middleware/auth";
 import { z } from "zod";
 import { BLOOD_TYPES } from "@/lib/constants";
 import { invalidateCache } from "@/lib/cache";
@@ -30,9 +30,9 @@ const UpdateRequestSchema = z.object({
 // PATCH — Update request details (urgency, status, patient information)
 export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
-    const admin = requireAdmin(req);
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden. Admin access only." }, { status: 403 });
+    const user = requirePrivileged(req);
+    if (!user) {
+      return NextResponse.json({ error: "Forbidden. Admin or coordinator access required." }, { status: 403 });
     }
 
     await connectDB();
