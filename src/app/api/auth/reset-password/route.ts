@@ -10,11 +10,12 @@ import bcrypt from "bcryptjs";
 import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
+import { StrongPasswordSchema } from "@/lib/validation/schemas/auth.schema";
 
 const ResetPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
   otp: z.string().length(6, "Verification code must be exactly 6 digits"),
-  newPassword: z.string().min(6, "New password must be at least 6 characters"),
+  newPassword: StrongPasswordSchema,
 });
 
 export async function POST(req: Request): Promise<Response> {

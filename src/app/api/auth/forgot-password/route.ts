@@ -10,6 +10,7 @@ import { sendPasswordResetOtpEmail } from "@/lib/email";
 import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
+import crypto from "crypto";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -41,7 +42,7 @@ export async function POST(req: Request): Promise<Response> {
     const user = await User.findOne({ email });
     if (user) {
       // Generate a 6-digit OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otp = crypto.randomInt(100000, 999999).toString();
       const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
       user.resetPasswordOtp = otp;

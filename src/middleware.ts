@@ -1,30 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
 interface DecodedJwt {
   userId?: string;
   role?: string;
 }
 
-function decodeJwtPayload(token: string): DecodedJwt | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch {
-    return null;
-  }
-}
-
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Only guard /dashboard routes
@@ -40,7 +23,10 @@ export function middleware(request: NextRequest) {
   }
 
   try {
-    const decoded = decodeJwtPayload(tokenCookie.value);
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "fallback_secret_for_dev_only");
+    const { payload } = await jwtVerify(tokenCookie.value, secret);
+    const decoded = payload as unknown as DecodedJwt;
+
     if (!decoded || !decoded.role) {
       return NextResponse.redirect(new URL("/login", request.url));
     }

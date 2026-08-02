@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --gradient-hero: linear-gradient(135deg, #1a0812 0%, #240b36 100%);
+  --gradient-hero: linear-gradient(135deg, #C31432 0%, #240B36 100%);
   --gradient-hero-hover: linear-gradient(135deg, #240b36 0%, #360f4c 100%);
 }
 

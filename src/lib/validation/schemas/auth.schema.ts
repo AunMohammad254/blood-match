@@ -1,10 +1,16 @@
 import { z } from 'zod';
 import { BLOOD_TYPES, CITIES } from '@/lib/constants';
 
+export const StrongPasswordSchema = z.string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number");
+
 export const RegisterSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: StrongPasswordSchema,
   phone: z.string().min(10, "Phone must be at least 10 digits").max(15),
   bloodType: z.enum(BLOOD_TYPES as unknown as [string, ...string[]]),
   city: z.enum(CITIES as unknown as [string, ...string[]]),

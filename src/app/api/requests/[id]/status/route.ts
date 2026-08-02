@@ -18,7 +18,21 @@ import { logger } from "@/lib/logger";
 const UpdateStatusSchema = z.object({
   status: z.enum(REQUEST_STATUS as unknown as [string, ...string[]]),
   reason: z.string().optional(),
+  override: z.boolean().optional(),
 });
+
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  "pending": ["verified", "rejected", "expired", "cancelled"],
+  "verified": ["matched", "expired", "cancelled"],
+  "matched": ["contacted", "expired", "cancelled"],
+  "contacted": ["committed", "expired", "cancelled"],
+  "committed": ["donated", "expired", "cancelled"],
+  "donated": ["fulfilled"],
+  "fulfilled": [],
+  "rejected": [],
+  "expired": [],
+  "cancelled": []
+};
 
 export async function PATCH(
   req: Request,
@@ -57,8 +71,34 @@ export async function PATCH(
       );
     }
 
-    const { status: newStatus, reason } = validation.data;
+    const { status: newStatus, reason, override } = validation.data;
     const previousStatus = bloodRequest.status;
+
+    if (newStatus === previousStatus) {
+      return NextResponse.json({ message: "Status is already up to date.", request: bloodRequest }, { status: 200 });
+    }
+
+    // Owner restriction: Owners can only cancel their own requests unless they are also privileged
+    if (isOwner && !isPrivileged) {
+      if (newStatus !== "cancelled") {
+        return NextResponse.json(
+          { error: "Forbidden. Request owners can only transition status to 'cancelled'." },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Lifecycle transition check
+    const isValidTransition = ALLOWED_TRANSITIONS[previousStatus]?.includes(newStatus);
+    
+    if (!isValidTransition) {
+      if (!isPrivileged || !override) {
+        return NextResponse.json(
+          { error: `Invalid status transition from '${previousStatus}' to '${newStatus}'. Privileged users may bypass this by providing the 'override: true' flag.` },
+          { status: 400 }
+        );
+      }
+    }
 
     bloodRequest.status = newStatus as any;
     

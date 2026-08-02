@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @route PATCH /api/auth/change-password
  * @description API route handler for PATCH /api/auth/change-password
  * @access Authenticated
@@ -10,6 +10,13 @@ import { verifyAuth } from "@/lib/middleware/auth";
 import bcrypt from "bcryptjs";
 import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
 import { logger } from "@/lib/logger";
+import { z } from "zod";
+import { StrongPasswordSchema } from "@/lib/validation/schemas/auth.schema";
+
+const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: StrongPasswordSchema,
+});
 
 export async function PATCH(req: Request): Promise<Response> {
   try {
@@ -30,15 +37,15 @@ export async function PATCH(req: Request): Promise<Response> {
     }
 
     const body = await req.json();
-    const { currentPassword, newPassword } = body;
-
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json({ error: "Current and new passwords are required." }, { status: 400 });
+    const validation = ChangePasswordSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "New password must be at least 6 characters." }, { status: 400 });
-    }
+    const { currentPassword, newPassword } = validation.data;
 
     const user = await User.findById(decoded.userId);
     if (!user) {

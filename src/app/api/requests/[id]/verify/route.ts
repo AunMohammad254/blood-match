@@ -48,18 +48,6 @@ export async function POST(
     await connectDB();
     const requestId = params.id;
 
-    const bloodRequest = await BloodRequest.findById(requestId);
-    if (!bloodRequest) {
-      return NextResponse.json({ error: "Blood request not found." }, { status: 404 });
-    }
-
-    if (bloodRequest.status !== "pending" && bloodRequest.status !== "open") {
-      return NextResponse.json(
-        { error: `Cannot verify a request with status '${bloodRequest.status}'. Only pending requests can be verified.` },
-        { status: 400 }
-      );
-    }
-
     const body = await req.json();
     const validation = VerifySchema.safeParse(body);
     if (!validation.success) {
@@ -75,18 +63,37 @@ export async function POST(
     const { decision, notes } = validation.data;
     const isApproved = decision === "approved";
 
-    // 1. Record the verification decision
+    // Atomically update the blood request to ensure it hasn't been verified concurrently
+    const updatedRequest = await BloodRequest.findOneAndUpdate(
+      { _id: requestId, status: { $in: ["pending", "open"] } },
+      { 
+        $set: { 
+          status: isApproved ? "verified" : "rejected", 
+          isVerified: isApproved 
+        } 
+      },
+      { new: true }
+    );
+
+    if (!updatedRequest) {
+      // Check if it's not found or if the status just didn't match
+      const exists = await BloodRequest.findById(requestId);
+      if (!exists) {
+        return NextResponse.json({ error: "Blood request not found." }, { status: 404 });
+      }
+      return NextResponse.json(
+        { error: `Cannot verify a request with status '${exists.status}'. Only pending requests can be verified.` },
+        { status: 400 }
+      );
+    }
+
+    // Record the verification decision
     const verificationRecord = await Verification.create({
-      requestId: bloodRequest._id,
+      requestId: updatedRequest._id,
       verifiedBy: user.userId,
       decision,
       notes: notes?.trim() || "",
     });
-
-    // 2. Update the blood request status & isVerified status
-    bloodRequest.status = isApproved ? "verified" : "rejected";
-    bloodRequest.isVerified = isApproved;
-    await bloodRequest.save();
 
     invalidateCache("requests");
 
@@ -94,7 +101,7 @@ export async function POST(
       {
         message: `Request ${decision} successfully.`,
         verification: verificationRecord,
-        request: bloodRequest,
+        request: updatedRequest,
       },
       { status: 200 }
     );
