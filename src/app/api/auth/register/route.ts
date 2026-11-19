@@ -22,8 +22,18 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
-    await connectDB();
     const body = await req.json();
+
+    // Hard server-side gate: block self-registration for privileged roles with a clear 403
+    const PRIVILEGED_ROLES = new Set(["hospital_verifier", "coordinator", "admin"]);
+    if (typeof body?.role === "string" && PRIVILEGED_ROLES.has(body.role)) {
+      return NextResponse.json(
+        {
+          error: `Self-registration as '${body.role}' is forbidden. Privileged roles must be assigned by an administrator.`,
+        },
+        { status: 403 }
+      );
+    }
 
     const validationResult = RegisterSchema.safeParse(body);
     if (!validationResult.success) {
@@ -38,13 +48,15 @@ export async function POST(req: Request): Promise<Response> {
 
     const { name, email, password, phone, bloodType, city, role, location } = validationResult.data;
 
-    // Hard server-side enforcement: Public registration is allowed for donor, recipient, patient_attendant, and hospital_verifier roles
-    if (role !== "donor" && role !== "recipient" && role !== "patient_attendant" && role !== "hospital_verifier") {
+    // Defense-in-depth allowlist: Public registration is only allowed for donor, patient_attendant, and legacy recipient roles
+    if (role !== "donor" && role !== "recipient" && role !== "patient_attendant") {
       return NextResponse.json(
-        { error: "Invalid registration role." },
-        { status: 400 }
+        { error: "Forbidden. Only donor, patient_attendant, and recipient roles can self-register." },
+        { status: 403 }
       );
     }
+
+    await connectDB();
 
     const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
