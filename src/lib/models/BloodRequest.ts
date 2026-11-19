@@ -23,7 +23,7 @@ export interface IBloodRequest extends Document {
   updatedAt: Date;
 }
 
-const BloodRequestSchema = new Schema<IBloodRequest>(
+export const BloodRequestSchema = new Schema<IBloodRequest>(
   {
     patientName: { type: String, required: true, trim: true },
     bloodType: { type: String, required: true, enum: BLOOD_TYPES },
@@ -51,7 +51,7 @@ BloodRequestSchema.index({ status: 1, urgency: 1, createdAt: -1 });
 BloodRequestSchema.index({ city: 1, bloodType: 1, status: 1 });
 BloodRequestSchema.index({ requestedBy: 1, status: 1 });
 BloodRequestSchema.index({ matchedDonor: 1 });
-BloodRequestSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Auto-cleanup expired
+BloodRequestSchema.index({ status: 1, expiresAt: 1 });
 
 import { BloodRequestMemoryModel } from "@/lib/db/memoryStore";
 
