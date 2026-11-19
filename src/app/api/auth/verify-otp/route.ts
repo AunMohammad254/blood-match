@@ -26,7 +26,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     }
 
     const { otp } = await req.json();
-    if (!otp) {
+    if (!otp || typeof otp !== "string") {
       return NextResponse.json({ error: "OTP is required" }, { status: 400 });
     }
 
@@ -47,19 +47,37 @@ export async function POST(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: "No OTP was requested" }, { status: 400 });
     }
 
-    if (new Date() > new Date(user.emailVerificationOtpExpiry)) {
+    const expiryTime = new Date(user.emailVerificationOtpExpiry).getTime();
+    if (Number.isNaN(expiryTime) || Date.now() >= expiryTime) {
+      // Clear expired OTP fields in app code without deleting the User document
+      if (typeof user.save === "function") {
+        user.emailVerificationOtp = undefined;
+        user.emailVerificationOtpExpiry = undefined;
+        await user.save();
+      } else {
+        await User.findByIdAndUpdate(user._id, {
+          $unset: { emailVerificationOtp: 1, emailVerificationOtpExpiry: 1 },
+        });
+      }
       return NextResponse.json({ error: "OTP has expired. Please request a new one." }, { status: 400 });
     }
 
-    if (user.emailVerificationOtp !== otp) {
+    if (user.emailVerificationOtp !== otp.trim()) {
       return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
     }
 
-    // OTP is valid
-    user.isEmailVerified = true;
-    user.emailVerificationOtp = undefined;
-    user.emailVerificationOtpExpiry = undefined;
-    await user.save();
+    // OTP is valid — mark verified and clear OTP fields without deleting the User document
+    if (typeof user.save === "function") {
+      user.isEmailVerified = true;
+      user.emailVerificationOtp = undefined;
+      user.emailVerificationOtpExpiry = undefined;
+      await user.save();
+    } else {
+      await User.findByIdAndUpdate(user._id, {
+        $set: { isEmailVerified: true },
+        $unset: { emailVerificationOtp: 1, emailVerificationOtpExpiry: 1 },
+      });
+    }
 
     return NextResponse.json({ success: true, message: "Email verified successfully" });
   } catch (error) {

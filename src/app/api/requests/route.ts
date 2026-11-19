@@ -17,6 +17,7 @@ import { logger } from "@/lib/logger";
 import { CreateRequestSchema } from "@/lib/validation/schemas";
 import { checkRateLimit, getIdentifier } from "@/lib/middleware/rateLimiter";
 import { sendAdminAlertEmail } from "@/lib/email";
+import { expireStaleRequests, buildActiveExpiryFilter } from "@/lib/expiration";
 
 type PopulatedRequest = HydratedDocument<IBloodRequest> & {
   requestedBy: { _id: string; name: string; city: string };
@@ -26,6 +27,13 @@ type PopulatedRequest = HydratedDocument<IBloodRequest> & {
 export async function GET(req: Request): Promise<Response> {
   try {
     await connectDB();
+
+    // Soft-expire overdue active requests before querying (never hard-deletes)
+    const expiredCount = await expireStaleRequests();
+    if (expiredCount > 0) {
+      invalidateCache("requests");
+    }
+
     const { searchParams } = new URL(req.url);
     const city = searchParams.get("city");
     const bloodType = searchParams.get("bloodType");
@@ -65,16 +73,19 @@ export async function GET(req: Request): Promise<Response> {
 
       if (filter.status === "open") {
         filter.isVerified = true;
-        const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-        filter.$or = [
-          { expiresAt: null, createdAt: { $gt: threeDaysAgo } },
-          { expiresAt: { $gt: new Date() } }
-        ];
 
         if (user) {
           filter.declinedBy = { $ne: user.userId };
           cacheUserId = `donor_${user.userId}`;
         }
+      }
+    }
+
+    // Defense-in-depth: exclude overdue requests from active non-terminal status queries
+    if (typeof filter.status === "string") {
+      const activeExpiryFilter = buildActiveExpiryFilter(filter.status);
+      if (activeExpiryFilter) {
+        Object.assign(filter, activeExpiryFilter);
       }
     }
 

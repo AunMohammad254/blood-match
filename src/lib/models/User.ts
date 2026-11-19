@@ -33,7 +33,7 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUser>(
+export const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
@@ -68,7 +68,6 @@ const UserSchema = new Schema<IUser>(
 UserSchema.index({ bloodType: 1, city: 1 });
 UserSchema.index({ role: 1, isAvailable: 1, bloodType: 1, city: 1 });
 UserSchema.index({ isAvailable: 1, lastDonatedAt: -1 });
-UserSchema.index({ emailVerificationOtpExpiry: 1 }, { expireAfterSeconds: 0 }); // Auto cleanup expired OTPs
 UserSchema.index({ location: '2dsphere' });
 
 import { UserMemoryModel } from "@/lib/db/memoryStore";

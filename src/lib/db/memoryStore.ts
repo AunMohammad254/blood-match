@@ -1,4 +1,4 @@
-import { COMPATIBILITY_MAP } from "@/lib/constants";
+import { COMPATIBILITY_MAP, RequestStatus, Role } from "@/lib/constants";
 
 /**
  * @file memoryStore.ts
@@ -25,12 +25,12 @@ export interface MockUser {
   phone: string;
   bloodType: string;
   city: string;
-  role: "donor" | "recipient" | "admin" | "coordinator";
+  role: Role;
   isAvailable: boolean;
   isEmailVerified: boolean;
   emailVerificationOtp?: string;
-  emailVerificationOtpExpiry?: string;
-  lastDonatedAt?: string;
+  emailVerificationOtpExpiry?: string | Date;
+  lastDonatedAt?: string | Date;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,9 +45,9 @@ export interface MockBloodRequest {
   urgency: "normal" | "urgent" | "critical";
   contactPhone: string;
   requestedBy: any;
-  status: "open" | "accepted" | "rejected" | "fulfilled" | "cancelled";
+  status: RequestStatus;
   isVerified?: boolean;
-  expiresAt?: string;
+  expiresAt?: string | Date;
   declinedBy?: string[];
   reports?: number;
   reportedBy?: string[];
@@ -406,7 +406,18 @@ export const UserMemoryModel = {
     if (idx === -1) return new MockQuery(null, false);
 
     const current = memoryDatabase.users[idx];
-    const updated = { ...current, ...update, updatedAt: new Date().toISOString() };
+    const { $set, $unset, ...directFields } = update || {};
+    const updated: any = {
+      ...current,
+      ...directFields,
+      ...($set || {}),
+      updatedAt: new Date().toISOString(),
+    };
+    if ($unset && typeof $unset === "object") {
+      for (const key of Object.keys($unset)) {
+        delete updated[key];
+      }
+    }
     memoryDatabase.users[idx] = updated;
 
     return new MockQuery(options?.new ? updated : current, false);
@@ -438,67 +449,116 @@ export const UserMemoryModel = {
   },
 };
 
+function matchesDateCondition(fieldValue: unknown, condition: any): boolean {
+  const isMissing = fieldValue === null || fieldValue === undefined;
+
+  if (condition === null || condition === undefined) {
+    return isMissing;
+  }
+
+  if (typeof condition === "object" && !(condition instanceof Date)) {
+    if ("$exists" in condition) {
+      const exists = !isMissing;
+      if (exists !== Boolean(condition.$exists)) return false;
+    }
+    if ("$ne" in condition) {
+      if (condition.$ne === null || condition.$ne === undefined) {
+        if (isMissing) return false;
+      } else if (fieldValue === condition.$ne) {
+        return false;
+      }
+    }
+    const compareOps: Array<["$gt" | "$gte" | "$lt" | "$lte", (a: number, b: number) => boolean]> = [
+      ["$gt", (a, b) => a > b],
+      ["$gte", (a, b) => a >= b],
+      ["$lt", (a, b) => a < b],
+      ["$lte", (a, b) => a <= b],
+    ];
+    for (const [op, comparator] of compareOps) {
+      if (op in condition) {
+        if (isMissing) return false;
+        const fieldTime = new Date(fieldValue as string | Date).getTime();
+        const targetTime = new Date(condition[op]).getTime();
+        if (Number.isNaN(fieldTime) || Number.isNaN(targetTime) || !comparator(fieldTime, targetTime)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  if (isMissing) return false;
+  return new Date(fieldValue as string | Date).getTime() === new Date(condition).getTime();
+}
+
+function matchesBloodRequestFilter(r: MockBloodRequest, query: any): boolean {
+  if (!query || typeof query !== "object") return true;
+
+  for (const [key, val] of Object.entries(query)) {
+    if (key === "mine") continue;
+
+    if (key === "$and" && Array.isArray(val)) {
+      if (!val.every((sub) => matchesBloodRequestFilter(r, sub))) return false;
+      continue;
+    }
+
+    if (key === "$or" && Array.isArray(val)) {
+      if (!val.some((sub) => matchesBloodRequestFilter(r, sub))) return false;
+      continue;
+    }
+
+    if (key === "expiresAt" || key === "createdAt" || key === "updatedAt") {
+      if (!matchesDateCondition((r as any)[key], val)) return false;
+      continue;
+    }
+
+    if (key === "declinedBy" && val && typeof val === "object" && "$ne" in (val as any)) {
+      if (r.declinedBy && r.declinedBy.includes((val as any).$ne)) return false;
+      continue;
+    }
+
+    if (key === "city") {
+      if (val && typeof val === "object" && "$regex" in (val as any)) {
+        const reg = new RegExp((val as any).$regex, (val as any).$options || "i");
+        if (!reg.test(r.city)) return false;
+      } else if (typeof val === "string") {
+        if (r.city.toLowerCase() !== val.toLowerCase()) return false;
+      }
+      continue;
+    }
+
+    const fieldVal = (r as any)[key];
+    if (val && typeof val === "object" && !(val instanceof Date)) {
+      const cond = val as any;
+      if ("$in" in cond && Array.isArray(cond.$in)) {
+        if (!cond.$in.includes(fieldVal)) return false;
+      }
+      if ("$nin" in cond && Array.isArray(cond.$nin)) {
+        if (cond.$nin.includes(fieldVal)) return false;
+      }
+      if ("$ne" in cond) {
+        if (fieldVal === cond.$ne) return false;
+      }
+      if ("$exists" in cond) {
+        const exists = fieldVal !== null && fieldVal !== undefined;
+        if (exists !== Boolean(cond.$exists)) return false;
+      }
+      continue;
+    }
+
+    if (fieldVal !== val) return false;
+  }
+
+  return true;
+}
+
 // BloodRequest Memory Operations
 export const BloodRequestMemoryModel = {
-  find: (query: any) => {
-    let matches = memoryDatabase.bloodRequests;
-    if (query.status) {
-      if (query.status.$in) {
-        matches = matches.filter((r) => query.status.$in.includes(r.status));
-      } else {
-        matches = matches.filter((r) => r.status === query.status);
-      }
-    }
-    if (query.requestedBy) {
-      matches = matches.filter((r) => r.requestedBy === query.requestedBy);
-    }
-    if (query.matchedDonor) {
-      matches = matches.filter((r) => r.matchedDonor === query.matchedDonor);
-    }
-    if (query.isVerified !== undefined) {
-      matches = matches.filter((r) => r.isVerified === query.isVerified);
-    }
-    if (query.city) {
-      if (query.city.$regex) {
-        const reg = new RegExp(query.city.$regex, query.city.$options || "i");
-        matches = matches.filter((r) => reg.test(r.city));
-      } else {
-        matches = matches.filter((r) => r.city.toLowerCase() === query.city.toLowerCase());
-      }
-    }
-    if (query.bloodType) {
-      matches = matches.filter((r) => r.bloodType === query.bloodType);
-    }
-    if (query.urgency) {
-      matches = matches.filter((r) => r.urgency === query.urgency);
-    }
-    if (query.declinedBy) {
-      if (query.declinedBy.$ne) {
-        matches = matches.filter((r) => !r.declinedBy || !r.declinedBy.includes(query.declinedBy.$ne));
-      }
-    }
+  find: (query: any = {}) => {
+    let matches = memoryDatabase.bloodRequests.filter((r) => matchesBloodRequestFilter(r, query));
 
-    if (query.$or) {
-      matches = matches.filter((r) => {
-        return query.$or.some((subQuery: any) => {
-          return Object.entries(subQuery).every(([key, val]: [string, any]) => {
-            if (key === "expiresAt") {
-              if (val === null || val === undefined) {
-                return r.expiresAt === null || r.expiresAt === undefined;
-              }
-              if (val.$gt) {
-                if (!r.expiresAt) return true;
-                return new Date(r.expiresAt) > new Date(val.$gt);
-              }
-            }
-            return (r as any)[key] === val;
-          });
-        });
-      });
-    }
-
-    // Auto-filter expired requests for open queries
-    if (query.status === "open" && !query.$or && !query.mine) {
+    // Auto-filter expired requests for open queries without explicit $or
+    if (query.status === "open" && !query.$or && !query.$and && !query.mine) {
       matches = matches.filter((r) => {
         if (!r.expiresAt) return true;
         return new Date(r.expiresAt) > new Date();
@@ -507,11 +567,15 @@ export const BloodRequestMemoryModel = {
 
     return new MockQuery([...matches], true);
   },
+  findOne: (query: any = {}) => {
+    const match = memoryDatabase.bloodRequests.find((r) => matchesBloodRequestFilter(r, query));
+    return new MockQuery(match || null, false);
+  },
   create: async (data: any) => {
     const newReq: MockBloodRequest = {
       ...data,
-      _id: "req_" + Date.now(),
-      status: "open",
+      _id: "req_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+      status: data.status || "open",
       isVerified: data.isVerified ?? false,
       declinedBy: [],
       expiresAt: data.expiresAt || new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
@@ -526,7 +590,7 @@ export const BloodRequestMemoryModel = {
     if (!item) return null;
 
     // Return a mutable copy with a save method
-    const mutableItem = {
+    const mutableItem: any = {
       ...item,
       requestedBy: { toString: () => item.requestedBy },
       matchedDonor: item.matchedDonor ? { toString: () => item.matchedDonor } : undefined,
@@ -534,14 +598,31 @@ export const BloodRequestMemoryModel = {
       save: async () => {
         const idx = memoryDatabase.bloodRequests.findIndex((r) => r._id === id);
         if (idx !== -1) {
-          memoryDatabase.bloodRequests[idx] = {
+          const next: any = {
             ...memoryDatabase.bloodRequests[idx],
             status: mutableItem.status,
             isVerified: mutableItem.isVerified ?? memoryDatabase.bloodRequests[idx].isVerified,
             declinedBy: mutableItem.declinedBy || memoryDatabase.bloodRequests[idx].declinedBy,
-            matchedDonor: mutableItem.matchedDonor ? (mutableItem.matchedDonor.toString ? mutableItem.matchedDonor.toString() : mutableItem.matchedDonor) : memoryDatabase.bloodRequests[idx].matchedDonor,
             updatedAt: new Date().toISOString(),
           };
+
+          if (mutableItem.matchedDonor === undefined || mutableItem.matchedDonor === null) {
+            delete next.matchedDonor;
+          } else {
+            next.matchedDonor = mutableItem.matchedDonor.toString
+              ? mutableItem.matchedDonor.toString()
+              : mutableItem.matchedDonor;
+          }
+
+          if (mutableItem.expiresAt === undefined || mutableItem.expiresAt === null) {
+            delete next.expiresAt;
+          } else {
+            next.expiresAt = mutableItem.expiresAt instanceof Date
+              ? mutableItem.expiresAt.toISOString()
+              : mutableItem.expiresAt;
+          }
+
+          memoryDatabase.bloodRequests[idx] = next;
         }
       },
     };
@@ -551,16 +632,54 @@ export const BloodRequestMemoryModel = {
     const idx = memoryDatabase.bloodRequests.findIndex((r) => r._id === id);
     if (idx === -1) return null;
     const current = memoryDatabase.bloodRequests[idx];
-    const setData = update.$set || update;
-    let updated = { ...current, ...setData, updatedAt: new Date().toISOString() };
-    
-    if (update.$push && update.$push.declinedBy) {
-      const existingDeclined = current.declinedBy || [];
-      updated.declinedBy = [...existingDeclined, update.$push.declinedBy];
+    const { $set, $unset, $push, ...directFields } = update || {};
+    const updated: any = {
+      ...current,
+      ...directFields,
+      ...($set || {}),
+      updatedAt: new Date().toISOString(),
+    };
+
+    if ($unset && typeof $unset === "object") {
+      for (const key of Object.keys($unset)) {
+        delete updated[key];
+      }
     }
-    
+
+    if ($push && $push.declinedBy) {
+      const existingDeclined = current.declinedBy || [];
+      updated.declinedBy = [...existingDeclined, $push.declinedBy];
+    }
+
     memoryDatabase.bloodRequests[idx] = updated;
     return options?.new ? updated : current;
+  },
+  updateMany: async (filter: any, update: any) => {
+    let matchedCount = 0;
+    let modifiedCount = 0;
+    const { $set, $unset, ...directFields } = update || {};
+
+    for (let i = 0; i < memoryDatabase.bloodRequests.length; i++) {
+      const current = memoryDatabase.bloodRequests[i];
+      if (!matchesBloodRequestFilter(current, filter)) continue;
+
+      matchedCount++;
+      const updated: any = {
+        ...current,
+        ...directFields,
+        ...($set || {}),
+        updatedAt: new Date().toISOString(),
+      };
+      if ($unset && typeof $unset === "object") {
+        for (const key of Object.keys($unset)) {
+          delete updated[key];
+        }
+      }
+      memoryDatabase.bloodRequests[i] = updated;
+      modifiedCount++;
+    }
+
+    return { acknowledged: true, matchedCount, modifiedCount };
   },
   deleteOne: async (query: any) => {
     const idx = memoryDatabase.bloodRequests.findIndex((r) => r._id === query._id || r._id === query.id);
@@ -591,17 +710,30 @@ export const BloodRequestMemoryModel = {
 
 // DonationRecord Memory Operations
 export const DonationRecordMemoryModel = {
-  find: (query: any) => {
+  find: (query: any = {}) => {
     let matches = memoryDatabase.donationRecords;
     if (query.donorId) {
       matches = matches.filter((d) => d.donorId === query.donorId);
     }
+    if (query.requestId) {
+      matches = matches.filter((d) => d.requestId === query.requestId);
+    }
     return new MockQuery([...matches], true);
+  },
+  findOne: (query: any = {}) => {
+    let matches = memoryDatabase.donationRecords;
+    if (query.donorId) {
+      matches = matches.filter((d) => d.donorId === query.donorId);
+    }
+    if (query.requestId) {
+      matches = matches.filter((d) => d.requestId === query.requestId);
+    }
+    return new MockQuery(matches[0] || null, false);
   },
   create: async (data: any) => {
     const newRecord = {
       ...data,
-      _id: "rec_" + Date.now(),
+      _id: "rec_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
       donatedAt: data.donatedAt || new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -613,6 +745,7 @@ export const DonationRecordMemoryModel = {
     if (!query) return memoryDatabase.donationRecords.length;
     let matches = memoryDatabase.donationRecords;
     if (query.donorId) matches = matches.filter((d) => d.donorId === query.donorId);
+    if (query.requestId) matches = matches.filter((d) => d.requestId === query.requestId);
     return matches.length;
   }
 };
@@ -682,7 +815,14 @@ export const ConsentMemoryModel = {
   find: (query?: any) => {
     let matches = (memoryDatabase as any).consents || [];
     if (query?.donorId) matches = matches.filter((c: any) => c.donorId === query.donorId);
-    if (query?.requestId) matches = matches.filter((c: any) => c.requestId === query.requestId);
+    if (query?.requestId) {
+      if (query.requestId.$in) {
+        const ids = query.requestId.$in.map((id: any) => String(id));
+        matches = matches.filter((c: any) => ids.includes(String(c.requestId)));
+      } else {
+        matches = matches.filter((c: any) => String(c.requestId) === String(query.requestId));
+      }
+    }
     if (query?.donorMatchId) matches = matches.filter((c: any) => c.donorMatchId === query.donorMatchId);
     return new MockQuery([...matches], true);
   },
@@ -718,7 +858,7 @@ export const AuditLogMemoryModel = {
     if (!(memoryDatabase as any).auditLogs) (memoryDatabase as any).auditLogs = [];
     const newLog = {
       ...data,
-      _id: "audit_" + Date.now(),
+      _id: "audit_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

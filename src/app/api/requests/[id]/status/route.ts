@@ -1,18 +1,17 @@
 /**
  * @route PATCH /api/requests/[id]/status
- * @description Updates a request status along the 8-state fulfillment pipeline with audit logging for overrides.
+ * @description Updates a request status along the 8-state fulfillment pipeline with rollback support,
+ * automated idempotent fulfillment hooks, and audit logging.
  * @access Request Owner, Coordinator, Admin
  */
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
-import { BloodRequest } from "@/lib/models/BloodRequest";
-import { AuditLog } from "@/lib/models/AuditLog";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { REQUEST_STATUS } from "@/lib/constants";
+import { applyRequestStatusTransition } from "@/lib/expiration";
 import { z } from "zod";
-import { invalidateCache } from "@/lib/cache";
 import { logger } from "@/lib/logger";
 
 const UpdateStatusSchema = z.object({
@@ -20,19 +19,6 @@ const UpdateStatusSchema = z.object({
   reason: z.string().optional(),
   override: z.boolean().optional(),
 });
-
-const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-  "pending": ["verified", "rejected", "expired", "cancelled"],
-  "verified": ["matched", "expired", "cancelled"],
-  "matched": ["contacted", "expired", "cancelled"],
-  "contacted": ["committed", "expired", "cancelled"],
-  "committed": ["donated", "expired", "cancelled"],
-  "donated": ["fulfilled"],
-  "fulfilled": [],
-  "rejected": [],
-  "expired": [],
-  "cancelled": []
-};
 
 export async function PATCH(
   req: Request,
@@ -44,24 +30,6 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
     }
 
-    await connectDB();
-    const requestId = params.id;
-
-    const bloodRequest = await BloodRequest.findById(requestId);
-    if (!bloodRequest) {
-      return NextResponse.json({ error: "Blood request not found." }, { status: 404 });
-    }
-
-    const isOwner = bloodRequest.requestedBy.toString() === user.userId;
-    const isPrivileged = user.role === "admin" || user.role === "coordinator";
-
-    if (!isOwner && !isPrivileged) {
-      return NextResponse.json(
-        { error: "Forbidden. Only the request owner, coordinators, or administrators can update status." },
-        { status: 403 }
-      );
-    }
-
     const body = await req.json();
     const validation = UpdateStatusSchema.safeParse(body);
     if (!validation.success) {
@@ -71,66 +39,34 @@ export async function PATCH(
       );
     }
 
+    await connectDB();
+
     const { status: newStatus, reason, override } = validation.data;
-    const previousStatus = bloodRequest.status;
+    const result = await applyRequestStatusTransition({
+      requestId: params.id,
+      user,
+      newStatus,
+      reason,
+      override,
+    });
 
-    if (newStatus === previousStatus) {
-      return NextResponse.json({ message: "Status is already up to date.", request: bloodRequest }, { status: 200 });
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: result.httpStatus });
     }
 
-    // Owner restriction: Owners can only cancel their own requests unless they are also privileged
-    if (isOwner && !isPrivileged) {
-      if (newStatus !== "cancelled") {
-        return NextResponse.json(
-          { error: "Forbidden. Request owners can only transition status to 'cancelled'." },
-          { status: 403 }
-        );
-      }
+    if (result.unchanged) {
+      return NextResponse.json(
+        { message: result.message, request: result.request },
+        { status: 200 }
+      );
     }
-
-    // Lifecycle transition check
-    const isValidTransition = ALLOWED_TRANSITIONS[previousStatus]?.includes(newStatus);
-    
-    if (!isValidTransition) {
-      if (!isPrivileged || !override) {
-        return NextResponse.json(
-          { error: `Invalid status transition from '${previousStatus}' to '${newStatus}'. Privileged users may bypass this by providing the 'override: true' flag.` },
-          { status: 400 }
-        );
-      }
-    }
-
-    bloodRequest.status = newStatus as any;
-    
-    if (newStatus === "verified") {
-      bloodRequest.isVerified = true;
-    }
-
-    await bloodRequest.save();
-
-    // Create AuditLog if overridden by admin/coordinator or if reason is provided
-    if (isPrivileged || reason) {
-      await AuditLog.create({
-        action: isPrivileged ? "STATUS_OVERRIDE" : "STATUS_UPDATE",
-        performedBy: user.userId,
-        targetId: bloodRequest._id,
-        details: {
-          previousStatus,
-          newStatus,
-          reason: reason?.trim() || "",
-          userRole: user.role,
-        },
-      });
-    }
-
-    invalidateCache("requests");
 
     return NextResponse.json(
       {
-        message: `Status updated to '${newStatus}'.`,
-        previousStatus,
-        newStatus,
-        request: bloodRequest,
+        message: result.message,
+        previousStatus: result.previousStatus,
+        newStatus: result.newStatus,
+        request: result.request,
       },
       { status: 200 }
     );
