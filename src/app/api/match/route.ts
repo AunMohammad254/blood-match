@@ -14,6 +14,10 @@ import { FilterQuery } from "mongoose";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { handleETag } from "@/lib/etag";
 import { logger } from "@/lib/logger";
+import {
+  SAFE_DONOR_DIRECTORY_PROJECTION,
+  sanitizeDonorForDirectory,
+} from "@/lib/privacy";
 
 export async function GET(req: Request): Promise<Response> {
   try {
@@ -82,13 +86,8 @@ export async function GET(req: Request): Promise<Response> {
       }
     }
 
-    const isAdminOrCoordinator = user && (user.role === "admin" || user.role === "coordinator");
-
-    const selectFields = isAdminOrCoordinator
-      ? "name bloodType city phone isAvailable lastDonatedAt createdAt"
-      : "name bloodType city isAvailable lastDonatedAt createdAt";
-
-    let dbQuery = User.find(query).select(selectFields);
+    // Consent gate (Rules.md §5): General donor search never returns phone/email because no donor+request Consent exists.
+    let dbQuery = User.find(query).select(SAFE_DONOR_DIRECTORY_PROJECTION);
     
     // If using $near, MongoDB automatically sorts by proximity. 
     // Otherwise, fallback to createdAt.
@@ -97,11 +96,11 @@ export async function GET(req: Request): Promise<Response> {
     }
 
     const MAX_MATCH_RESULTS = 50;
-    let donors = (await dbQuery.limit(MAX_MATCH_RESULTS).lean()) as any[];
+    const rawDonors = (await dbQuery.limit(MAX_MATCH_RESULTS).lean()) as Array<Record<string, any>>;
 
-    // Calculate match score
+    // Calculate match score and strictly sanitize donor fields (defense-in-depth for memoryStore)
     const now = Date.now();
-    donors = donors.map((d: any) => {
+    const donors = rawDonors.map((d) => {
       let score = 100;
       
       let daysSinceDonation = Infinity;
@@ -116,12 +115,12 @@ export async function GET(req: Request): Promise<Response> {
       
       if (!d.isAvailable) score -= 40;
 
-      return { ...d, matchScore: score };
+      return sanitizeDonorForDirectory({ ...d, matchScore: score });
     });
 
     // If not sorting by distance, sort by our custom score
     if (!isProximitySearch) {
-      donors.sort((a, b) => b.matchScore - a.matchScore);
+      donors.sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
     }
 
     const resultPayload = {

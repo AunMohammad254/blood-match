@@ -15,6 +15,10 @@ import { getCache, setCache } from "@/lib/cache";
 import { handleETag } from "@/lib/etag";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { logger } from "@/lib/logger";
+import {
+  SAFE_DONOR_DIRECTORY_PROJECTION,
+  sanitizeDonorForDirectory,
+} from "@/lib/privacy";
 
 export async function GET(req: Request): Promise<Response> {
   try {
@@ -50,27 +54,28 @@ export async function GET(req: Request): Promise<Response> {
       query.city = city.trim();
     }
 
-    const isAdminOrCoordinator = user && (user.role === "admin" || user.role === "coordinator");
-    const selectFields = isAdminOrCoordinator
-      ? "name bloodType city phone isAvailable lastDonatedAt createdAt"
-      : "name bloodType city isAvailable lastDonatedAt createdAt";
-
-    const cacheKey = `donors:${bloodType || "all"}:${city || "all"}:${page}:${limit}:${isAdminOrCoordinator ? "admin" : "public"}`;
+    // Consent gate (Rules.md §5): General donor directory never returns phone/email because no donor+request Consent exists.
+    const cacheKey = `donors:${bloodType || "all"}:${city || "all"}:${page}:${limit}`;
     const cachedData = getCache<any>(cacheKey);
 
     let resultPayload;
     if (cachedData) {
       resultPayload = cachedData;
     } else {
-      const [donors, total] = await Promise.all([
+      const [rawDonors, total] = await Promise.all([
         User.find(query)
-          .select(selectFields)
+          .select(SAFE_DONOR_DIRECTORY_PROJECTION)
           .sort({ createdAt: 1 })
           .skip((page - 1) * limit)
           .limit(limit)
           .lean(),
         User.countDocuments(query)
       ]);
+
+      // Defense-in-depth allowlist sanitization (protects memoryStore where .select() is a no-op)
+      const donors = (rawDonors as Array<Record<string, any>>).map((d) =>
+        sanitizeDonorForDirectory(d)
+      );
 
       resultPayload = {
         donors,

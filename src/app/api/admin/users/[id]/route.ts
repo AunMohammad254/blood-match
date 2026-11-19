@@ -9,21 +9,9 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connect";
 import { User } from "@/lib/models/User";
 import { requireAdmin } from "@/lib/middleware/auth";
-import { z } from "zod";
 import bcrypt from "bcryptjs";
-import { BLOOD_TYPES } from "@/lib/constants";
+import { AdminUpdateUserSchema } from "@/lib/validation/schemas";
 import { logger } from "@/lib/logger";
-
-const UpdateUserSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters.").optional(),
-  email: z.string().email("Invalid email address.").optional(),
-  phone: z.string().min(10, "Phone number must be at least 10 characters.").optional(),
-  bloodType: z.enum(BLOOD_TYPES as unknown as [string, ...string[]]).optional(),
-  city: z.string().min(2, "City must be at least 2 characters.").optional(),
-  role: z.enum(["donor", "recipient", "admin", "coordinator"]).optional(),
-  isAvailable: z.boolean().optional(),
-  password: z.string().min(6, "Password must be at least 6 characters.").optional(),
-});
 
 // PATCH — Update user (full profile, toggle availability, change role, reset password)
 export async function PATCH(req: Request, { params }: { params: { id: string } }): Promise<NextResponse> {
@@ -37,8 +25,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const { id } = params;
     const body = await req.json();
 
-    // Validate request body
-    const result = UpdateUserSchema.safeParse(body);
+    // Validate request body (allows assigning all roles including hospital_verifier & patient_attendant)
+    const result = AdminUpdateUserSchema.safeParse(body);
     if (!result.success) {
       const errorMsg = result.error.issues.map((e) => e.message).join(" ");
       return NextResponse.json({ error: errorMsg }, { status: 400 });
@@ -71,6 +59,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     const userObj = updated.toObject ? updated.toObject() : { ...updated };
     delete userObj.password;
+    delete userObj.emailVerificationOtp;
+    delete userObj.emailVerificationOtpExpiry;
+    delete userObj.resetPasswordOtp;
+    delete userObj.resetPasswordOtpExpiry;
 
     return NextResponse.json({ message: "User updated successfully.", user: userObj });
   } catch (err) {

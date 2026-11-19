@@ -10,8 +10,15 @@ import { connectDB } from "@/lib/db/connect";
 import { BloodRequest } from "@/lib/models/BloodRequest";
 import { User } from "@/lib/models/User";
 import { DonorMatch } from "@/lib/models/DonorMatch";
+import { Consent } from "@/lib/models/Consent";
 import { verifyAuth } from "@/lib/middleware/auth";
 import { findEligibleDonors } from "@/lib/matching-engine";
+import {
+  SAFE_DONOR_PROJECTION,
+  sanitizeDonorForMatch,
+  sanitizeMatchResults,
+  type ConsentedDonorContact,
+} from "@/lib/privacy";
 import { invalidateCache } from "@/lib/cache";
 import { logger } from "@/lib/logger";
 
@@ -60,12 +67,20 @@ export async function POST(
       );
     }
 
-    // 1. Fetch potential candidate donors in the request's city
-    const candidateDonors = await User.find({
+    // 1. Fetch potential candidate donors in the request's city using strict non-PII projection
+    // Never select password, phone, email, or OTP fields before Consent exists (Rules.md §5)
+    const rawCandidateDonors = (await User.find({
       role: "donor",
       isAvailable: true,
       city: bloodRequest.city.trim(),
-    }).lean();
+    })
+      .select(SAFE_DONOR_PROJECTION)
+      .lean()) as Array<Record<string, any>>;
+
+    // Strip any unprojected fields (defense-in-depth for in-memory store where .select() is a no-op)
+    const candidateDonors = rawCandidateDonors.map((donor) =>
+      sanitizeDonorForMatch(donor)
+    );
 
     // 2. Execute deterministic matching engine
     const eligibleMatches = findEligibleDonors(
@@ -76,29 +91,83 @@ export async function POST(
         hospital: bloodRequest.hospital,
         urgency: bloodRequest.urgency,
       },
-      candidateDonors as any
+      candidateDonors
     );
 
     // 3. Persist DonorMatch records (upsert / update rank)
-    const matchRecords = [];
     for (const matchResult of eligibleMatches) {
       const donorId = matchResult.donor._id;
-      
-      const matchDoc = await DonorMatch.findOneAndUpdate(
-        { requestId: bloodRequest._id, donorId },
-        {
+
+      if (typeof DonorMatch.findOneAndUpdate === "function") {
+        await DonorMatch.findOneAndUpdate(
+          { requestId: bloodRequest._id, donorId },
+          {
+            requestId: bloodRequest._id,
+            donorId,
+            rank: matchResult.rank,
+            status: "pending",
+            matchedAt: new Date(),
+          },
+          { upsert: true, new: true }
+        );
+      } else {
+        await DonorMatch.create({
           requestId: bloodRequest._id,
           donorId,
           rank: matchResult.rank,
           status: "pending",
           matchedAt: new Date(),
-        },
-        { upsert: true, new: true }
-      );
-      matchRecords.push(matchDoc);
+        });
+      }
     }
 
-    // 4. Update request status to 'matched'
+    // 4. Query-level consent gate: reveal phone/email ONLY for donors with a verified Consent for this request
+    const existingConsents = (await Consent.find({
+      requestId: bloodRequest._id,
+    })
+      .select("donorId requestId")
+      .lean()) as Array<{ donorId?: { toString(): string } | string }>;
+
+    const consentedDonorIds = new Set(
+      (existingConsents || [])
+        .map((c) => c.donorId?.toString?.() ?? String(c.donorId ?? ""))
+        .filter(Boolean)
+    );
+
+    const consentedContactByDonorId = new Map<string, ConsentedDonorContact>();
+    if (consentedDonorIds.size > 0) {
+      const matchedConsentedIds = eligibleMatches
+        .map((m) => m.donor._id?.toString?.() ?? String(m.donor._id))
+        .filter((id) => consentedDonorIds.has(id));
+
+      if (matchedConsentedIds.length > 0) {
+        const consentedUsers = (await User.find({
+          _id: { $in: matchedConsentedIds },
+        })
+          .select("_id phone email")
+          .lean()) as Array<{ _id: unknown; phone?: string; email?: string }>;
+
+        for (const cu of consentedUsers || []) {
+          const idStr =
+            cu._id && typeof (cu._id as { toString?: () => string }).toString === "function"
+              ? (cu._id as { toString: () => string }).toString()
+              : String(cu._id ?? "");
+          if (consentedDonorIds.has(idStr)) {
+            consentedContactByDonorId.set(idStr, {
+              phone: cu.phone,
+              email: cu.email,
+            });
+          }
+        }
+      }
+    }
+
+    const sanitizedMatches = sanitizeMatchResults(
+      eligibleMatches,
+      consentedContactByDonorId
+    );
+
+    // 5. Update request status to 'matched'
     bloodRequest.status = "matched";
     await bloodRequest.save();
 
@@ -106,9 +175,9 @@ export async function POST(
 
     return NextResponse.json(
       {
-        message: `Matching engine completed. ${eligibleMatches.length} eligible donor(s) matched.`,
-        totalMatches: eligibleMatches.length,
-        matches: eligibleMatches,
+        message: `Matching engine completed. ${sanitizedMatches.length} eligible donor(s) matched.`,
+        totalMatches: sanitizedMatches.length,
+        matches: sanitizedMatches,
         request: bloodRequest,
       },
       { status: 200 }
